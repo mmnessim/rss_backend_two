@@ -16,11 +16,17 @@ async fn main() {
         .route("/", get(root))
         .route("/panic", get(panic_route));
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
-        .await
-        .unwrap();
+    let address = "127.0.0.1:3000";
 
-    tracing::debug!("Listening on {}", listener.local_addr().unwrap());
+    let listener = match tokio::net::TcpListener::bind(address).await {
+        Ok(lst) => lst,
+        Err(err) => {
+            tracing::error!("Failed to bind to address {} {}", address, err);
+            std::process::exit(1);
+        }
+    };
+
+    tracing::info!("Listening on {}", listener.local_addr().unwrap());
     let _ = axum::serve(listener, app).await;
 }
 
