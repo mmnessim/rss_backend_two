@@ -1,6 +1,7 @@
-use axum::{Router, routing::get};
 use tracing::Level;
 use tracing_subscriber::EnvFilter;
+
+mod routes;
 
 #[tokio::main]
 async fn main() {
@@ -12,9 +13,7 @@ async fn main() {
         tracing::error!("panic: {}", panic_info);
     }));
 
-    let app = Router::new()
-        .route("/", get(root))
-        .route("/panic", get(panic_route));
+    let app = routes::router();
 
     let address = "127.0.0.1:3000";
 
@@ -28,16 +27,4 @@ async fn main() {
 
     tracing::info!("Listening on {}", listener.local_addr().unwrap());
     let _ = axum::serve(listener, app).await;
-}
-
-async fn root() -> &'static str {
-    tracing::info!("/ GET");
-    "Hello world"
-}
-
-async fn panic_route() -> &'static str {
-    tokio::spawn(async {
-        panic!("intentional test panic");
-    });
-    "panic spawned"
 }
