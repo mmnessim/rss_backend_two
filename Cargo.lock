@@ -783,6 +783,7 @@ dependencies = [
  "feed-rs",
  "notify",
  "serde",
+ "serde_json",
  "tokio",
  "tracing",
  "tracing-subscriber",
