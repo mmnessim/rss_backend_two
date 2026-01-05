@@ -18,6 +18,11 @@ async fn main() {
     }));
 
     tokio::spawn(async { file_watcher().await });
+    tokio::spawn(async {
+        if let Err(e) = initialize_database().await {
+            tracing::error!("Failed to initialize database: {:?}", e);
+        }
+    });
 
     let app = routes::router();
 
@@ -71,7 +76,7 @@ async fn read_file() -> Result<Vec<SourceFeed>, Box<dyn std::error::Error>> {
         Ok(bytes) => bytes,
         Err(e) => {
             tracing::error!("Error reading feeds.json {:?}", e);
-            return Err(Box::new(e));
+            return Err(Box::new(e) as Box<dyn std::error::Error>);
         }
     };
 
@@ -87,7 +92,7 @@ async fn read_file() -> Result<Vec<SourceFeed>, Box<dyn std::error::Error>> {
         }
         Err(e) => {
             tracing::error!("Error parsing feeds from feeds.json: {:?}", e);
-            return Err(Box::new(e));
+            return Err(Box::new(e) as Box<dyn std::error::Error>);
         }
     };
 
@@ -147,4 +152,63 @@ async fn parse_feed(feed: &SourceFeed) {
 struct SourceFeed {
     source: String,
     url: String,
+}
+
+async fn initialize_database() -> Result<(), Box<dyn std::error::Error>> {
+    let mut db_path = std::env::current_dir()?;
+    db_path.push("feeds.db");
+
+    if let Some(parent) = db_path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+
+    if !db_path.exists() {
+        fs::File::create(&db_path)?;
+        tracing::info!("Created database file at {}", db_path.display());
+    }
+
+    let conn_str = format!("sqlite://{}", db_path.display());
+    tracing::info!("Connecting to database at {}", conn_str);
+
+    let pool = sqlx::SqlitePool::connect(&conn_str).await?;
+
+    match sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS feeds (
+            id INTEGER PRIMARY KEY,
+            source TEXT NOT NULL,
+            url TEXT NOT NULL
+        );
+        "#,
+    )
+    .execute(&pool)
+    .await
+    {
+        Ok(res) => tracing::info!("Query executed {:?}", res),
+        Err(e) => {
+            tracing::error!("Error executing query: {:?}", e);
+            return Err(Box::new(e) as Box<dyn std::error::Error>);
+        }
+    };
+
+    match sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS articles (
+            id INTEGER PRIMARY KEY,
+            title TEXT,
+            description TEXT
+        );
+        "#,
+    )
+    .execute(&pool)
+    .await
+    {
+        Ok(res) => tracing::info!("Query executed {:?}", res),
+        Err(e) => {
+            tracing::error!("Error executing query: {:?}", e);
+            return Err(Box::new(e) as Box<dyn std::error::Error>);
+        }
+    };
+
+    Ok(())
 }
