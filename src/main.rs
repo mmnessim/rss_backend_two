@@ -10,7 +10,7 @@ mod routes;
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env().add_directive(Level::DEBUG.into()))
+        .with_env_filter(EnvFilter::from_default_env().add_directive(Level::INFO.into()))
         .init();
 
     std::panic::set_hook(Box::new(|panic_info| {
@@ -35,6 +35,8 @@ async fn main() {
     let _ = axum::serve(listener, app).await;
 }
 
+/// Watches the feeds.json file for changes and reloads feeds when it changes.
+/// Eventaully this will simple update the in-memory feed list instead of reloading everything.
 async fn file_watcher() {
     let (tx, mut rx) = tokio::sync::mpsc::channel::<notify::Result<Event>>(100);
 
@@ -55,7 +57,7 @@ async fn file_watcher() {
     while let Some(res) = rx.recv().await {
         match res {
             Ok(event) => {
-                read_file();
+                let _ = read_file().await;
                 tracing::info!("event: {:?} {:?}", event.kind, event.paths)
             }
             Err(e) => tracing::error!("watch error: {:?}", e),
@@ -63,36 +65,86 @@ async fn file_watcher() {
     }
 }
 
-fn read_file() {
+/// Reads the feeds.json file and returns a vector of Feed structs.
+async fn read_file() -> Result<Vec<SourceFeed>, Box<dyn std::error::Error>> {
     let bytes = match fs::read("./feeds.json") {
         Ok(bytes) => bytes,
         Err(e) => {
             tracing::error!("Error reading feeds.json {:?}", e);
-            return;
+            return Err(Box::new(e));
         }
     };
+
     match str::from_utf8(&bytes) {
         Ok(s) => println!("{s}"),
         Err(e) => println!("Error: {:?}", e),
     }
 
-    let feeds_opt = match serde_json::from_slice::<Vec<Feed>>(&bytes) {
+    let feeds_opt = match serde_json::from_slice::<Vec<SourceFeed>>(&bytes) {
         Ok(feeds) => {
             tracing::info!("Loaded {} feeds", feeds.len());
             Some(feeds)
         }
         Err(e) => {
             tracing::error!("Error parsing feeds from feeds.json: {:?}", e);
-            None
+            return Err(Box::new(e));
         }
     };
+
+    // Temporary block to spawn tasks to parse each feed.
     if let Some(feeds) = feeds_opt {
-        println!("{} {}", feeds[0].source, feeds[0].url)
+        println!("{} {}", feeds[0].source, feeds[0].url);
+        let feeds_clone = feeds.clone();
+        for feed in feeds_clone {
+            tokio::spawn(async move {
+                parse_feed(&feed).await;
+            });
+        }
+        return Ok(feeds);
+    };
+
+    Ok(vec![])
+}
+
+/// Fetches and parses a feed from the given Feed struct.
+/// Eventually this will either update the database directly or send the parsed feed to another service.
+async fn parse_feed(feed: &SourceFeed) {
+    let resp = match reqwest::get(&feed.url).await {
+        Ok(resp) => resp,
+        Err(e) => {
+            tracing::error!("Error fetching feed {} {:?}", feed.source, e);
+            return;
+        }
+    };
+
+    if let Ok(bytes) = resp.bytes().await {
+        let cursor = std::io::Cursor::new(bytes.to_vec());
+        match feed_rs::parser::parse(cursor) {
+            Ok(parsed) => {
+                let title = match parsed.title {
+                    Some(t) => t.content,
+                    None => String::new(),
+                };
+
+                let authors = if parsed.authors.is_empty() {
+                    vec!["Staff".to_string()]
+                } else {
+                    parsed.authors.iter().map(|a| a.name.clone()).collect()
+                };
+                let description = match parsed.description {
+                    Some(d) => d.content,
+                    None => String::new(),
+                };
+
+                tracing::info!("{} {:?} {}", title, authors, description);
+            }
+            Err(e) => tracing::error!("Failed to parse feed {}: {:?}", feed.source, e),
+        }
     }
 }
 
-#[derive(Deserialize, Debug)]
-struct Feed {
+#[derive(Deserialize, Debug, Clone)]
+struct SourceFeed {
     source: String,
     url: String,
 }
