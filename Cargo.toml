@@ -10,6 +10,7 @@ tokio = { version = "1.0", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 feed-rs = "2.3.1"
+notify = "8.1.0"
 
 [profile.dev]
 opt-level = 0

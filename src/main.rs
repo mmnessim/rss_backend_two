@@ -1,3 +1,6 @@
+use std::path::Path;
+
+use notify::{Event, RecursiveMode, Watcher};
 use tracing::Level;
 use tracing_subscriber::EnvFilter;
 
@@ -12,6 +15,31 @@ async fn main() {
     std::panic::set_hook(Box::new(|panic_info| {
         tracing::error!("panic: {}", panic_info);
     }));
+
+    tokio::spawn(async {
+        let (tx, mut rx) = tokio::sync::mpsc::channel::<notify::Result<Event>>(100);
+
+        let mut watcher = match notify::recommended_watcher(move |res| {
+            let _ = tx.blocking_send(res);
+        }) {
+            Ok(w) => w,
+            Err(e) => {
+                tracing::error!("Error creating watcher: {e}");
+                return;
+            }
+        };
+
+        watcher
+            .watch(Path::new("."), RecursiveMode::NonRecursive)
+            .unwrap();
+
+        while let Some(res) = rx.recv().await {
+            match res {
+                Ok(event) => tracing::info!("event: {:?} {:?}", event.kind, event.paths),
+                Err(e) => tracing::error!("watch error: {:?}", e),
+            }
+        }
+    });
 
     let app = routes::router();
 

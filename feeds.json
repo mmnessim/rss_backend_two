@@ -1,0 +1,558 @@
+[
+    {
+        "source": "New York Times",
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
+    },
+    {
+        "source": "New York Times",
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/US.xml"
+    },
+    {
+        "source": "New York Times",
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/Africa.xml"
+    },
+    {
+        "source": "New York Times",
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/Americas.xml"
+    },
+    {
+        "source": "New York Times",
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/AsiaPacific.xml"
+    },
+    {
+        "source": "New York Times",
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/Europe.xml"
+    },
+    {
+        "source": "New York Times",
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/MiddleEast.xml"
+    },
+    {
+        "source": "New York Times",
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/Education.xml"
+    },
+    {
+        "source": "New York Times",
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml"
+    },
+    {
+        "source": "BBC",
+        "url": "https://feeds.bbci.co.uk/news/rss.xml"
+    },
+    {
+        "source": "BBC",
+        "url": "https://feeds.bbci.co.uk/news/politics/rss.xml"
+    },
+    {
+        "source": "BBC",
+        "url": "https://feeds.bbci.co.uk/news/health/rss.xml"
+    },
+    {
+        "source": "BBC",
+        "url": "https://feeds.bbci.co.uk/news/education/rss.xml"
+    },
+    {
+        "source": "BBC",
+        "url": "https://feeds.bbci.co.uk/news/world/rss.xml"
+    },
+    {
+        "source": "BBC",
+        "url": "https://feeds.bbci.co.uk/news/technology/rss.xml"
+    },
+    {
+        "source": "BBC",
+        "url": "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml"
+    },
+    {
+        "source": "CBS News",
+        "url": "https://www.cbsnews.com/latest/rss/main"
+    },
+    {
+        "source": "CBS News",
+        "url": "https://www.cbsnews.com/latest/rss/us"
+    },
+    {
+        "source": "CBS News",
+        "url": "https://www.cbsnews.com/latest/rss/politics"
+    },
+    {
+        "source": "CBS News",
+        "url": "https://www.cbsnews.com/latest/rss/world"
+    },
+    {
+        "source": "CBS News",
+        "url": "https://www.cbsnews.com/latest/rss/health"
+    },
+    {
+        "source": "CBS News",
+        "url": "https://www.cbsnews.com/latest/rss/moneywatch"
+    },
+    {
+        "source": "CBS News",
+        "url": "https://www.cbsnews.com/latest/rss/science"
+    },
+    {
+        "source": "CBS News",
+        "url": "https://www.cbsnews.com/latest/rss/technology"
+    },
+    {
+        "source": "CBS News",
+        "url": "https://www.cbsnews.com/latest/rss/evening-news/cbs-news-investigates"
+    },
+    {
+        "source": "ScienceDaily",
+        "url": "https://www.sciencedaily.com/rss/all.xml"
+    },
+    {
+        "source": "ScienceDaily",
+        "url": "https://www.sciencedaily.com/rss/top.xml"
+    },
+    {
+        "source": "ScienceDaily",
+        "url": "https://www.sciencedaily.com/rss/top/science.xml"
+    },
+    {
+        "source": "ScienceDaily",
+        "url": "https://www.sciencedaily.com/rss/top/health.xml"
+    },
+    {
+        "source": "ScienceDaily",
+        "url": "https://www.sciencedaily.com/rss/top/technology.xml"
+    },
+    {
+        "source": "ScienceDaily",
+        "url": "https://www.sciencedaily.com/rss/top/environment.xml"
+    },
+    {
+        "source": "ScienceDaily",
+        "url": "https://www.sciencedaily.com/rss/top/society.xml"
+    },
+    {
+        "source": "ScienceDaily",
+        "url": "https://www.sciencedaily.com/rss/strange_offbeat.xml"
+    },
+    {
+        "source": "ScienceDaily",
+        "url": "https://www.sciencedaily.com/rss/most_popular.xml"
+    },
+    {
+        "source": "ScienceDaily",
+        "url": "https://www.sciencedaily.com/rss/plants_animals/genetics.xml"
+    },
+    {
+        "source": "ScienceDaily",
+        "url": "https://www.sciencedaily.com/rss/plants_animals/epigenetics.xml"
+    },
+    {
+        "source": "Science",
+        "url": "https://science.org/rss/news_current.xml"
+    },
+    {
+        "source": "Science",
+        "url": "https://www.science.org/action/showFeed?type=etoc&feed=rss&jc=signaling"
+    },
+    {
+        "source": "Science",
+        "url": "https://www.science.org/action/showFeed?type=etoc&feed=rss&jc=sciimmunol"
+    },
+    {
+        "source": "Science",
+        "url": "https://www.science.org/action/showFeed?type=etoc&feed=rss&jc=stm"
+    },
+    {
+        "source": "NBC",
+        "url": "https://feeds.nbcnews.com/nbcnews/public/news"
+    },
+    {
+        "source": "ABC",
+        "url": "https://abcnews.go.com/abcnews/topstories"
+    },
+    {
+        "source": "ABC",
+        "url": "https://abcnews.go.com/abcnews/usheadlines"
+    },
+    {
+        "source": "ABC",
+        "url": "https://abcnews.go.com/abcnews/internationalheadlines"
+    },
+    {
+        "source": "ABC",
+        "url": "https://abcnews.go.com/abcnews/politicsheadlines"
+    },
+    {
+        "source": "ABC",
+        "url": "https://abcnews.go.com/abcnews/moneyheadlines"
+    },
+    {
+        "source": "ABC",
+        "url": "https://abcnews.go.com/abcnews/technologyheadlines"
+    },
+    {
+        "source": "ABC",
+        "url": "https://abcnews.go.com/abcnews/healthheadlines"
+    },
+    {
+        "source": "ABC",
+        "url": "https://abcnews.go.com/abcnews/entertainmentheadlines"
+    },
+    {
+        "source": "ABC",
+        "url": "https://abcnews.go.com/abcnews/travelheadlines"
+    },
+    {
+        "source": "ABC",
+        "url": "https://abcnews.go.com/abcnews/sportsheadlines"
+    },
+    {
+        "source": "ABC",
+        "url": "https://abcnews.go.com/abcnews/worldnewsheadlines"
+    },
+    {
+        "source": "Politico",
+        "url": "https://www.politico.com/rss/politicopicks.xml"
+    },
+    {
+        "source": "Washington Times",
+        "url": "https://www.washingtontimes.com/rss/headlines/news"
+    },
+    {
+        "source": "Washington Times",
+        "url": "https://www.washingtontimes.com/rss/headlines/culture/health/"
+    },
+    {
+        "source": "Vox",
+        "url": "https://www.vox.com/rss/index.xml"
+    },
+    {
+        "source": "Observer",
+        "url": "https://observer.com/feed/"
+    },
+    {
+        "source": "Salon",
+        "url": "https://www.salon.com/feed"
+    },
+    {
+        "source": "Chicago Sun-Times",
+        "url": "https://chicago.suntimes.com/rss/index.xml"
+    },
+    {
+        "source": "Nature",
+        "url": "https://rsshub.app/nature/research/nature"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/cardiology/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/chronic-disease/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/clinical-trials/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/clinical-trials/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/gastroenterology/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/infectious-disease/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/chronic-disease/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/nephrology/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/neurology/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/obstetrics/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/cancer/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/pediatrics/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/perspectives/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/psychiatry/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/public-health/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/pulmonology/feed/"
+    },
+    {
+        "source": "2 Minute Medicine",
+        "url": "https://www.2minutemedicine.com/category/surgery/feed/"
+    },
+    {
+        "source": "Fighting Blindness",
+        "url": "https://www.fightingblindness.org/feeds/research/types/retinal-disease-research-advances"
+    },
+    {
+        "source": "Fighting Blindness",
+        "url": "https://www.fightingblindness.org/feeds/research/types/eye-on-the-cure-research-news"
+    },
+    {
+        "source": "Fighting Blindness",
+        "url": "https://www.fightingblindness.org/feeds/research/diseases/retinitis-pigmentosa"
+    },
+    {
+        "source": "Pitchfork Media",
+        "url": "https://pitchfork.com/feed/feed-news/rss"
+    },
+    {
+        "source": "Capital Public Radio",
+        "url": "https://feeds.feedburner.com/CapitalPublicRadioLatestNewsRSS"
+    },
+    {
+        "source": "Capital Public Radio",
+        "url": "https://feeds.feedburner.com/CapitalPublicRadioArtsandLifestyleRSS"
+    },
+    {
+        "source": "Capital Public Radio",
+        "url": "https://feeds.feedburner.com/CapitalPublicRadioBusinessRSS"
+    },
+    {
+        "source": "Capital Public Radio",
+        "url": "https://feeds.feedburner.com/CapitalPublicRadioenvironmentRSS"
+    },
+    {
+        "source": "Capital Public Radio",
+        "url": "https://feeds.feedburner.com/CapitalPublicRadioFoodandSustainabilityRSS"
+    },
+    {
+        "source": "Capital Public Radio",
+        "url": "https://feeds.feedburner.com/CapitalPublicRadiohealthcareRSS"
+    },
+    {
+        "source": "Capital Public Radio",
+        "url": "https://feeds.feedburner.com/CapitalPublicRadioRaceandEquityRSS"
+    },
+    {
+        "source": "NPR",
+        "url": "https://feeds.npr.org/1001/rss.xml"
+    },
+    {
+        "source": "NPR",
+        "url": "https://feeds.npr.org/1013/rss.xml"
+    },
+    {
+        "source": "NPR",
+        "url": "https://feeds.npr.org/1008/rss.xml"
+    },
+    {
+        "source": "Washington Post",
+        "url": "https://feeds.washingtonpost.com/rss/national"
+    },
+    {
+        "source": "Washington Post",
+        "url": "https://feeds.washingtonpost.com/rss/world"
+    },
+    {
+        "source": "Washington Post",
+        "url": "https://feeds.washingtonpost.com/rss/business/technology"
+    },
+    {
+        "source": "Washington Post",
+        "url": "https://www.washingtonpost.com/arcio/rss/category/politics/"
+    },
+    {
+        "source": "Wired",
+        "url": "https://www.wired.com/feed"
+    },
+    {
+        "source": "PBS",
+        "url": "https://feeds.feedburner.com/FrontlineEditorsNotes"
+    },
+    {
+        "source": "PBS",
+        "url": "https://www.pbs.org/wgbh/nova/rss/all/"
+    },
+    {
+        "source": "National Science Foundation",
+        "url": "https://www.nsf.gov/rss/rss_www_news.xml"
+    },
+    {
+        "source": "National Institute of Biomedical Imaging and Biomedical Engineering",
+        "url": "https://www.nibib.nih.gov/rss"
+    },
+    {
+        "source": "Proceedings of the National Academy of Sciences: Biological Sciences",
+        "url": "https://www.pnas.org/action/showFeed?type=searchTopic&taxonomyCode=topic&tagCode=phys-sci"
+    },
+    {
+        "source": "Proceedings of the National Academy of Sciences: Biological Sciences",
+        "url": "https://www.pnas.org/action/showFeed?type=searchTopic&taxonomyCode=topic&tagCode=soc-sci"
+    },
+    {
+        "source": "Proceedings of the National Academy of Sciences: Biological Sciences",
+        "url": "https://www.pnas.org/action/showFeed?type=searchTopic&taxonomyCode=topic&tagCode=bio-sci"
+    },
+    {
+        "source": "NASA Earthdata",
+        "url": "https://www.earthdata.nasa.gov/rss.xml"
+    },
+    {
+        "source": "NASA Earthdata",
+        "url": "https://asdc.larc.nasa.gov/rss"
+    },
+    {
+        "source": "Royal Society of Chemistry",
+        "url": "http://feeds.rsc.org/rss/an"
+    },
+    {
+        "source": "Royal Society of Chemistry",
+        "url": "http://feeds.rsc.org/rss/ay"
+    },
+    {
+        "source": "Royal Society of Chemistry",
+        "url": "http://feeds.rsc.org/rss/cy"
+    },
+    {
+        "source": "Royal Society of Chemistry",
+        "url": "http://feeds.rsc.org/rss/cc"
+    },
+    {
+        "source": "Royal Society of Chemistry",
+        "url": "http://feeds.rsc.org/rss/ra"
+    },
+    {
+        "source": "Royal Society of Chemistry",
+        "url": "http://feeds.rsc.org/rss/pm"
+    },
+    {
+        "source": "The Scientist",
+        "url": "https://www.the-scientist.com/atom/latest"
+    },
+    {
+        "source": "The Scientist",
+        "url": "https://www.the-scientist.com/atom/society/research-ethics"
+    },
+    {
+        "source": "The Scientist",
+        "url": "https://www.the-scientist.com/atom/society/science-communication"
+    },
+    {
+        "source": "Hacker News",
+        "url": "http://news.ycombinator.com/rss"
+    },
+    {
+        "source": "The Verge",
+        "url": "https://www.theverge.com/rss/index.xml"
+    },
+    {
+        "source": "Psychology Today",
+        "url": "https://www.psychologytoday.com/intl/rss.xml"
+    },
+    {
+        "source": "MIT",
+        "url": "https://news.mit.edu/rss/topic/science-technology-and-society"
+    },
+    {
+        "source": "MPR",
+        "url": "https://www.mprnews.org/feed/homepage"
+    },
+    {
+        "source": "USDA",
+        "url": "https://www.usda.gov/rss/home.xml"
+    },
+    {
+        "source": "USDA",
+        "url": "https://www.usda.gov/rss/latest-releases.xml"
+    },
+    {
+        "source": "Straight Arrow News",
+        "url": "https://san.com/feed/"
+    },
+    {
+        "source": "Straight Arrow News",
+        "url": "https://san.com/sa_editorial_type/top-stories/feed/"
+    },
+    {
+        "source": "Straight Arrow News",
+        "url": "https://san.com/sa_editorial_type/san-originals/feed/"
+    },
+    {
+        "source": "Straight Arrow News",
+        "url": "https://san.com/politics/feed/"
+    },
+    {
+        "source": "Straight Arrow News",
+        "url": "https://san.com/business/feed/"
+    },
+    {
+        "source": "Straight Arrow News",
+        "url": "https://san.com/u-s/feed/"
+    },
+    {
+        "source": "Straight Arrow News",
+        "url": "https://san.com/military/feed/"
+    },
+    {
+        "source": "Straight Arrow News",
+        "url": "https://san.com/tech/feed/"
+    },
+    {
+        "source": "Straight Arrow News",
+        "url": "https://san.com/lifestyle/feed/"
+    },
+    {
+        "source": "Straight Arrow News",
+        "url": "https://san.com/sports/feed/"
+    },
+    {
+        "source": "Straight Arrow News",
+        "url": "https://san.com/energy/feed/"
+    },
+    {
+        "source": "Straight Arrow News",
+        "url": "https://san.com/international/feed/"
+    },
+    {
+        "source": "Straight Arrow News",
+        "url": "https://san.com/elections/feed/"
+    },
+    {
+        "source": "ESPN",
+        "url": "https://www.espn.com/espn/rss/news"
+    },
+    {
+        "source": "Mother Jones",
+        "url": "https://feeds.feedburner.com/motherjones/feed"
+    },
+    {
+        "source": "FAIR",
+        "url": "https://fair.org/feed/"
+    },
+    {
+        "source": "Pro Publica",
+        "url": "https://www.propublica.org/feeds/propublica/main"
+    }
+]
