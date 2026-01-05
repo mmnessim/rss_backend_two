@@ -1,4 +1,4 @@
-use std::{fs, path::Path, str};
+use std::{fs, path::Path, str, vec};
 
 use notify::{Event, RecursiveMode, Watcher};
 use serde::Deserialize;
@@ -6,6 +6,7 @@ use tracing::Level;
 use tracing_subscriber::EnvFilter;
 
 mod routes;
+mod data;
 
 #[tokio::main]
 async fn main() {
@@ -19,7 +20,7 @@ async fn main() {
 
     tokio::spawn(async { file_watcher().await });
     tokio::spawn(async {
-        if let Err(e) = initialize_database().await {
+        if let Err(e) = data::initialize_database().await {
             tracing::error!("Failed to initialize database: {:?}", e);
         }
     });
@@ -62,8 +63,11 @@ async fn file_watcher() {
     while let Some(res) = rx.recv().await {
         match res {
             Ok(event) => {
-                let _ = read_file().await;
-                tracing::info!("event: {:?} {:?}", event.kind, event.paths)
+                // tracing::info!("event: {:?} {:?}", event.kind, event.paths);
+                if event.kind == notify::EventKind::Modify(notify::event::ModifyKind::Data(notify::event::DataChange::Any)) {
+                    tracing::info!("Feeds.json changed: {:?}", event.kind);
+                    let _ = read_file().await;
+                };
             }
             Err(e) => tracing::error!("watch error: {:?}", e),
         }
@@ -98,7 +102,7 @@ async fn read_file() -> Result<Vec<SourceFeed>, Box<dyn std::error::Error>> {
 
     // Temporary block to spawn tasks to parse each feed.
     if let Some(feeds) = feeds_opt {
-        println!("{} {}", feeds[0].source, feeds[0].url);
+        // println!("{} {}", feeds[0].source, feeds[0].url);
         let feeds_clone = feeds.clone();
         for feed in feeds_clone {
             tokio::spawn(async move {
@@ -140,8 +144,12 @@ async fn parse_feed(feed: &SourceFeed) {
                     Some(d) => d.content,
                     None => String::new(),
                 };
-
-                tracing::info!("{} {:?} {}", title, authors, description);
+                let categories = if parsed.categories.is_empty() {
+                    vec!["No categories".to_string()]
+                } else {
+                    parsed.categories.iter().map(|c| c.term.clone()).collect()
+                };
+                tracing::info!("{} {:?} {} {}", title, authors, description, categories[0]);
             }
             Err(e) => tracing::error!("Failed to parse feed {}: {:?}", feed.source, e),
         }
@@ -152,63 +160,4 @@ async fn parse_feed(feed: &SourceFeed) {
 struct SourceFeed {
     source: String,
     url: String,
-}
-
-async fn initialize_database() -> Result<(), Box<dyn std::error::Error>> {
-    let mut db_path = std::env::current_dir()?;
-    db_path.push("feeds.db");
-
-    if let Some(parent) = db_path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-
-    if !db_path.exists() {
-        fs::File::create(&db_path)?;
-        tracing::info!("Created database file at {}", db_path.display());
-    }
-
-    let conn_str = format!("sqlite://{}", db_path.display());
-    tracing::info!("Connecting to database at {}", conn_str);
-
-    let pool = sqlx::SqlitePool::connect(&conn_str).await?;
-
-    match sqlx::query(
-        r#"
-        CREATE TABLE IF NOT EXISTS feeds (
-            id INTEGER PRIMARY KEY,
-            source TEXT NOT NULL,
-            url TEXT NOT NULL
-        );
-        "#,
-    )
-    .execute(&pool)
-    .await
-    {
-        Ok(res) => tracing::info!("Query executed {:?}", res),
-        Err(e) => {
-            tracing::error!("Error executing query: {:?}", e);
-            return Err(Box::new(e) as Box<dyn std::error::Error>);
-        }
-    };
-
-    match sqlx::query(
-        r#"
-        CREATE TABLE IF NOT EXISTS articles (
-            id INTEGER PRIMARY KEY,
-            title TEXT,
-            description TEXT
-        );
-        "#,
-    )
-    .execute(&pool)
-    .await
-    {
-        Ok(res) => tracing::info!("Query executed {:?}", res),
-        Err(e) => {
-            tracing::error!("Error executing query: {:?}", e);
-            return Err(Box::new(e) as Box<dyn std::error::Error>);
-        }
-    };
-
-    Ok(())
 }
