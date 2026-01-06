@@ -24,6 +24,25 @@ pub async fn initialize_database() -> Result<SqlitePool, Box<dyn std::error::Err
 
     match sqlx::query(
         r#"
+        CREATE TABLE IF NOT EXISTS feeds (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source TEXT NOT NULL,
+            url TEXT NOT NULL
+        );
+        "#,
+    )
+    .execute(&pool)
+    .await
+    {
+        Ok(res) => tracing::info!("articles table initialized {:?}", res),
+        Err(e) => {
+            tracing::error!("Error executing query: {:?}", e);
+            return Err(Box::new(e) as Box<dyn std::error::Error>);
+        }
+    };
+
+    match sqlx::query(
+        r#"
         CREATE TABLE IF NOT EXISTS articles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             rss_source TEXT NOT NULL,

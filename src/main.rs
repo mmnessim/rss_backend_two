@@ -1,7 +1,6 @@
 #![allow(unused_variables)]
 #![allow(dead_code)]
 use std::{
-    fs,
     path::Path,
     str,
     sync::{Arc, atomic::AtomicU64},
@@ -10,6 +9,7 @@ use std::{
 
 use notify::{Event, RecursiveMode, Watcher};
 use serde::Deserialize;
+use tokio::sync::RwLock;
 use tracing::Level;
 use tracing_subscriber::EnvFilter;
 
@@ -25,8 +25,6 @@ async fn main() {
     std::panic::set_hook(Box::new(|panic_info| {
         tracing::error!("panic: {}", panic_info);
     }));
-
-    tokio::spawn(async { file_watcher().await });
 
     let pool = match data::initialize_database().await {
         Ok(p) => p,
@@ -46,13 +44,18 @@ async fn main() {
         }
     };
 
-    for feed in feeds.iter() {
-        let pool_clone = pool.clone();
-        let feed_clone = feed.clone();
-        tokio::spawn(async move {
-            parse_feed(&feed_clone, &pool_clone).await;
-        });
-    }
+    let feeds_store = Arc::new(RwLock::new(feeds));
+    let feeds_store_clone = feeds_store.clone();
+
+    tokio::spawn(async move { file_watcher(feeds_store_clone).await });
+
+    // for feed in feeds.iter() {
+    //     let pool_clone = pool.clone();
+    //     let feed_clone = feed.clone();
+    //     tokio::spawn(async move {
+    //         parse_feed(&feed_clone, &pool_clone).await;
+    //     });
+    // }
 
     let app = routes::router();
 
@@ -72,7 +75,7 @@ async fn main() {
 
 /// Watches the feeds.json file for changes and reloads feeds when it changes.
 /// Eventaully this will simple update the in-memory feed list instead of reloading everything.
-async fn file_watcher() {
+async fn file_watcher(feeds_store_clone: Arc<RwLock<Vec<SourceFeed>>>) {
     let (tx, mut rx) = tokio::sync::mpsc::channel::<notify::Result<Event>>(100);
 
     let mut watcher = match notify::recommended_watcher(move |res| {
@@ -92,14 +95,18 @@ async fn file_watcher() {
     while let Some(res) = rx.recv().await {
         match res {
             Ok(event) => {
-                // tracing::info!("event: {:?} {:?}", event.kind, event.paths);
+                tracing::info!("event: {:?} {:?}", event.kind, event.paths);
                 if event.kind
                     == notify::EventKind::Modify(notify::event::ModifyKind::Data(
-                        notify::event::DataChange::Any,
+                        notify::event::DataChange::Content,
                     ))
                 {
                     tracing::info!("Feeds.json changed: {:?}", event.kind);
-                    // let _ = read_file(&pool).await;
+                    if let Ok(new_feeds) = read_file().await {
+                        let mut w = feeds_store_clone.write().await;
+                        *w = new_feeds;
+                        tracing::info!("Updated in-memory feeds ({} entries)", w.len());
+                    }
                 };
             }
             Err(e) => tracing::error!("watch error: {:?}", e),
@@ -108,32 +115,26 @@ async fn file_watcher() {
 }
 
 /// Reads the feeds.json file and returns a vector of Feed structs.
-async fn read_file() -> Result<Vec<SourceFeed>, Box<dyn std::error::Error>> {
-    let bytes = match fs::read("./feeds.json") {
+async fn read_file() -> Result<Vec<SourceFeed>, Box<dyn std::error::Error + Send + Sync + 'static>>
+{
+    let bytes = match tokio::fs::read("./feeds.json").await {
         Ok(bytes) => bytes,
         Err(e) => {
             tracing::error!("Error reading feeds.json {:?}", e);
-            return Err(Box::new(e) as Box<dyn std::error::Error>);
+            return Err(Box::new(e) as Box<dyn std::error::Error + Send + Sync + 'static>);
         }
     };
 
-    let feeds_opt = match serde_json::from_slice::<Vec<SourceFeed>>(&bytes) {
+    match serde_json::from_slice::<Vec<SourceFeed>>(&bytes) {
         Ok(feeds) => {
             tracing::info!("Loaded {} feeds", feeds.len());
-            Some(feeds)
+            Ok(feeds)
         }
         Err(e) => {
             tracing::error!("Error parsing feeds from feeds.json: {:?}", e);
-            return Err(Box::new(e) as Box<dyn std::error::Error>);
+            Err(Box::new(e) as Box<dyn std::error::Error + Send + Sync + 'static>)
         }
-    };
-
-    // Temporary block to spawn tasks to parse each feed.
-    if let Some(feeds) = feeds_opt {
-        return Ok(feeds);
-    };
-
-    Ok(vec![])
+    }
 }
 
 /// Fetches and parses a feed from the given Feed struct.
