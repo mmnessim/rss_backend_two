@@ -1,6 +1,10 @@
 use std::fs;
 
-pub async fn initialize_database() -> Result<(), Box<dyn std::error::Error>> {
+use sqlx::SqlitePool;
+
+pub mod crud;
+
+pub async fn initialize_database() -> Result<SqlitePool, Box<dyn std::error::Error>> {
     let mut db_path = std::env::current_dir()?;
     db_path.push("feeds.db");
 
@@ -56,5 +60,5 @@ pub async fn initialize_database() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    Ok(())
+    Ok(pool)
 }

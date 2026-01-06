@@ -5,8 +5,8 @@ use serde::Deserialize;
 use tracing::Level;
 use tracing_subscriber::EnvFilter;
 
-mod routes;
 mod data;
+mod routes;
 
 #[tokio::main]
 async fn main() {
@@ -19,11 +19,14 @@ async fn main() {
     }));
 
     tokio::spawn(async { file_watcher().await });
-    tokio::spawn(async {
-        if let Err(e) = data::initialize_database().await {
-            tracing::error!("Failed to initialize database: {:?}", e);
+
+    let pool = match data::initialize_database().await {
+        Ok(p) => p,
+        Err(e) => {
+            tracing::error!("Error initializing DB: {:?}", e);
+            std::process::exit(1);
         }
-    });
+    };
 
     let app = routes::router();
 
@@ -36,6 +39,15 @@ async fn main() {
             std::process::exit(1);
         }
     };
+
+    // let a = data::crud::Article {
+    //     id: 0,
+    //     title: String::from("Test"),
+    //     description: String::from("Test article"),
+    // };
+    //let rows = data::crud::put_article(&pool, a).await;
+    let pulled_rows = data::crud::get_articles(&pool).await;
+    println!("rows pulled: {:?}", pulled_rows);
 
     tracing::info!("Listening on {}", listener.local_addr().unwrap());
     let _ = axum::serve(listener, app).await;
@@ -64,7 +76,11 @@ async fn file_watcher() {
         match res {
             Ok(event) => {
                 // tracing::info!("event: {:?} {:?}", event.kind, event.paths);
-                if event.kind == notify::EventKind::Modify(notify::event::ModifyKind::Data(notify::event::DataChange::Any)) {
+                if event.kind
+                    == notify::EventKind::Modify(notify::event::ModifyKind::Data(
+                        notify::event::DataChange::Any,
+                    ))
+                {
                     tracing::info!("Feeds.json changed: {:?}", event.kind);
                     let _ = read_file().await;
                 };
