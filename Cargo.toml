@@ -13,7 +13,12 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 feed-rs = "2.3.1"
 notify = "8.1.0"
 reqwest = "0.13.1"
-sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite"] }
+sqlx = { version = "0.8", features = [
+    "sqlite",
+    "macros",
+    "migrate",
+    "runtime-tokio-native-tls",
+] }
 
 
 [profile.dev]

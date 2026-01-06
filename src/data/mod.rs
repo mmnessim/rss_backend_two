@@ -24,41 +24,36 @@ pub async fn initialize_database() -> Result<SqlitePool, Box<dyn std::error::Err
 
     match sqlx::query(
         r#"
-        CREATE TABLE IF NOT EXISTS feeds (
-            id INTEGER PRIMARY KEY,
-            source TEXT NOT NULL,
-            url TEXT NOT NULL
+        CREATE TABLE IF NOT EXISTS articles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            rss_source TEXT NOT NULL,
+            title TEXT NOT NULL,
+            link TEXT,
+            description TEXT,
+            guid TEXT UNIQUE,
+            time_added INTEGER NOT NULL,
+            pub_date INTEGER,
+            categories TEXT
         );
         "#,
     )
     .execute(&pool)
     .await
     {
-        Ok(res) => tracing::info!("Query executed {:?}", res),
+        Ok(res) => tracing::info!("articles table initialized {:?}", res),
         Err(e) => {
             tracing::error!("Error executing query: {:?}", e);
             return Err(Box::new(e) as Box<dyn std::error::Error>);
         }
     };
 
-    match sqlx::query(
-        r#"
-        CREATE TABLE IF NOT EXISTS articles (
-            id INTEGER PRIMARY KEY,
-            title TEXT,
-            description TEXT
-        );
-        "#,
-    )
-    .execute(&pool)
-    .await
-    {
-        Ok(res) => tracing::info!("Query executed {:?}", res),
+    match sqlx::migrate!("src/data/migrations").run(&pool).await {
+        Ok(_) => tracing::info!("Migrations applied successfully"),
         Err(e) => {
-            tracing::error!("Error executing query: {:?}", e);
+            tracing::error!("Error applying migrations: {:?}", e);
             return Err(Box::new(e) as Box<dyn std::error::Error>);
         }
-    };
+    }
 
     Ok(pool)
 }

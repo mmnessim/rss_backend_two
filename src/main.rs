@@ -1,4 +1,12 @@
-use std::{fs, path::Path, str, vec};
+#![allow(unused_variables)]
+#![allow(dead_code)]
+use std::{
+    fs,
+    path::Path,
+    str,
+    sync::{Arc, atomic::AtomicU64},
+    vec,
+};
 
 use notify::{Event, RecursiveMode, Watcher};
 use serde::Deserialize;
@@ -28,6 +36,24 @@ async fn main() {
         }
     };
 
+    let transaction_count = Arc::new(AtomicU64::new(0));
+
+    let feeds = match read_file().await {
+        Ok(f) => f,
+        Err(e) => {
+            tracing::error!("Error reading feeds: {:?}", e);
+            vec![]
+        }
+    };
+
+    for feed in feeds.iter() {
+        let pool_clone = pool.clone();
+        let feed_clone = feed.clone();
+        tokio::spawn(async move {
+            parse_feed(&feed_clone, &pool_clone).await;
+        });
+    }
+
     let app = routes::router();
 
     let address = "127.0.0.1:3000";
@@ -39,15 +65,6 @@ async fn main() {
             std::process::exit(1);
         }
     };
-
-    // let a = data::crud::Article {
-    //     id: 0,
-    //     title: String::from("Test"),
-    //     description: String::from("Test article"),
-    // };
-    //let rows = data::crud::put_article(&pool, a).await;
-    let pulled_rows = data::crud::get_articles(&pool).await;
-    println!("rows pulled: {:?}", pulled_rows);
 
     tracing::info!("Listening on {}", listener.local_addr().unwrap());
     let _ = axum::serve(listener, app).await;
@@ -82,7 +99,7 @@ async fn file_watcher() {
                     ))
                 {
                     tracing::info!("Feeds.json changed: {:?}", event.kind);
-                    let _ = read_file().await;
+                    // let _ = read_file(&pool).await;
                 };
             }
             Err(e) => tracing::error!("watch error: {:?}", e),
@@ -100,11 +117,6 @@ async fn read_file() -> Result<Vec<SourceFeed>, Box<dyn std::error::Error>> {
         }
     };
 
-    match str::from_utf8(&bytes) {
-        Ok(s) => println!("{s}"),
-        Err(e) => println!("Error: {:?}", e),
-    }
-
     let feeds_opt = match serde_json::from_slice::<Vec<SourceFeed>>(&bytes) {
         Ok(feeds) => {
             tracing::info!("Loaded {} feeds", feeds.len());
@@ -118,13 +130,6 @@ async fn read_file() -> Result<Vec<SourceFeed>, Box<dyn std::error::Error>> {
 
     // Temporary block to spawn tasks to parse each feed.
     if let Some(feeds) = feeds_opt {
-        // println!("{} {}", feeds[0].source, feeds[0].url);
-        let feeds_clone = feeds.clone();
-        for feed in feeds_clone {
-            tokio::spawn(async move {
-                parse_feed(&feed).await;
-            });
-        }
         return Ok(feeds);
     };
 
@@ -133,7 +138,7 @@ async fn read_file() -> Result<Vec<SourceFeed>, Box<dyn std::error::Error>> {
 
 /// Fetches and parses a feed from the given Feed struct.
 /// Eventually this will either update the database directly or send the parsed feed to another service.
-async fn parse_feed(feed: &SourceFeed) {
+async fn parse_feed(feed: &SourceFeed, pool: &sqlx::SqlitePool) {
     let resp = match reqwest::get(&feed.url).await {
         Ok(resp) => resp,
         Err(e) => {
@@ -146,26 +151,8 @@ async fn parse_feed(feed: &SourceFeed) {
         let cursor = std::io::Cursor::new(bytes.to_vec());
         match feed_rs::parser::parse(cursor) {
             Ok(parsed) => {
-                let title = match parsed.title {
-                    Some(t) => t.content,
-                    None => String::new(),
-                };
-
-                let authors = if parsed.authors.is_empty() {
-                    vec!["Staff".to_string()]
-                } else {
-                    parsed.authors.iter().map(|a| a.name.clone()).collect()
-                };
-                let description = match parsed.description {
-                    Some(d) => d.content,
-                    None => String::new(),
-                };
-                let categories = if parsed.categories.is_empty() {
-                    vec!["No categories".to_string()]
-                } else {
-                    parsed.categories.iter().map(|c| c.term.clone()).collect()
-                };
-                tracing::info!("{} {:?} {} {}", title, authors, description, categories[0]);
+                let inserted =
+                    data::crud::insert_from_rss(parsed.clone(), &feed.source, pool).await;
             }
             Err(e) => tracing::error!("Failed to parse feed {}: {:?}", feed.source, e),
         }
