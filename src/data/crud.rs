@@ -79,6 +79,7 @@ pub async fn get_like(query: &str, pool: &Pool<Sqlite>) -> Vec<Article> {
             SELECT * FROM articles 
             WHERE title LIKE ?
             OR description LIKE ?
+            LIMIT 100
             ;
         "#,
     )

@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      # # persist DB/files written to the container working dir (adjust if your DB path differs)
+      # - ./data:/app
+      - ./feeds.json:/app/feeds.json:ro
+    environment:
+      - RUST_LOG=info
+    restart: unless-stopped
