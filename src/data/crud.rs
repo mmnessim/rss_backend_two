@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite, prelude::FromRow};
 
-#[derive(Debug, Clone, FromRow)]
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct Article {
     pub id: u64,
     pub rss_source: String,

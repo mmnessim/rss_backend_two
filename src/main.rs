@@ -5,9 +5,12 @@ use std::{
     vec,
 };
 
+use sqlx::SqlitePool;
 use tokio::sync::RwLock;
 use tracing::Level;
 use tracing_subscriber::EnvFilter;
+
+use crate::watcher::SourceFeed;
 
 mod data;
 mod routes;
@@ -42,13 +45,13 @@ async fn main() {
     };
 
     let feeds_store = Arc::new(RwLock::new(feeds));
-    let feeds_store_clone = feeds_store.clone();
+    let feeds_store_update = feeds_store.clone();
 
     let feeds_clone_fetch = feeds_store.clone();
     let pool_clone_fetch = pool.clone();
 
     // Watch feeds.json
-    tokio::spawn(async move { watcher::file_watcher(feeds_store_clone).await });
+    tokio::spawn(async move { watcher::file_watcher(feeds_store_update).await });
 
     // Poll RSS feeds every 15 minutes
     tokio::spawn(async move {
@@ -69,7 +72,12 @@ async fn main() {
         }
     });
 
-    let app = routes::router();
+    let app_state = AppState {
+        pool: pool.clone(),
+        feeds: feeds_store.clone(),
+    };
+
+    let app = routes::router(app_state);
 
     let address = "127.0.0.1:3000";
 
@@ -83,4 +91,10 @@ async fn main() {
 
     tracing::info!("Listening on {}", listener.local_addr().unwrap());
     let _ = axum::serve(listener, app).await;
+}
+
+#[derive(Clone)]
+pub struct AppState {
+    pub pool: SqlitePool,
+    pub feeds: Arc<RwLock<Vec<SourceFeed>>>,
 }

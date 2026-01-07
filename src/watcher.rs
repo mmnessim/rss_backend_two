@@ -1,7 +1,7 @@
 use std::{path::Path, str, sync::Arc};
 
 use notify::{Event, RecursiveMode, Watcher};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 /// Watches the feeds.json file for changes and updates in-memory store of feeds on changes
@@ -89,7 +89,7 @@ pub async fn parse_feed(feed: &SourceFeed, pool: &sqlx::SqlitePool) {
     }
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SourceFeed {
     source: String,
     url: String,
