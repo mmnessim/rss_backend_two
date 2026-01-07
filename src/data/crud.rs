@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite, prelude::FromRow};
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
-pub struct Article {
+pub struct DbArticle {
     pub id: u64,
     pub rss_source: String,
     pub title: String,
@@ -15,8 +15,51 @@ pub struct Article {
     pub categories: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Article {
+    pub id: u64,
+    #[serde(rename = "rssSource")]
+    pub rss_source: String,
+    pub title: String,
+    pub link: Option<String>,
+    pub description: String,
+    pub guid: Option<String>,
+    // Just needed for deleting old articles
+    pub time_added: i64,
+    pub pub_date: Option<i64>,
+    // Exposed as an array for the frontend
+    pub categories: Vec<String>,
+}
+
+impl From<DbArticle> for Article {
+    fn from(d: DbArticle) -> Self {
+        let categories = d
+            .categories
+            .map(|s| {
+                if s.is_empty() {
+                    vec![]
+                } else {
+                    s.split(',').map(|s| s.to_string()).collect()
+                }
+            })
+            .unwrap_or_default();
+
+        Article {
+            id: d.id,
+            rss_source: d.rss_source,
+            title: d.title,
+            link: d.link,
+            description: d.description,
+            guid: d.guid,
+            time_added: d.time_added,
+            pub_date: d.pub_date,
+            categories,
+        }
+    }
+}
+
 pub async fn get_articles(pool: &Pool<Sqlite>) -> Vec<Article> {
-    let articles = match sqlx::query_as::<_, Article>("SELECT * FROM articles;")
+    let articles = match sqlx::query_as::<_, DbArticle>("SELECT * FROM articles;")
         .fetch_all(pool)
         .await
     {
@@ -27,11 +70,11 @@ pub async fn get_articles(pool: &Pool<Sqlite>) -> Vec<Article> {
         }
     };
 
-    return articles;
+    return articles.into_iter().map(Article::from).collect();
 }
 
 pub async fn get_like(query: &str, pool: &Pool<Sqlite>) -> Vec<Article> {
-    let articles = match sqlx::query_as::<_, Article>(
+    let articles = match sqlx::query_as::<_, DbArticle>(
         r#"
             SELECT * FROM articles 
             WHERE title LIKE ?
@@ -51,7 +94,7 @@ pub async fn get_like(query: &str, pool: &Pool<Sqlite>) -> Vec<Article> {
         }
     };
 
-    return articles;
+    return articles.into_iter().map(Article::from).collect();
 }
 
 pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &Pool<Sqlite>) -> u64 {
@@ -125,4 +168,11 @@ pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &Poo
     }
 
     return rows;
+}
+
+pub async fn count_articles(pool: &Pool<Sqlite>) -> Result<i64, sqlx::Error> {
+    let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM articles")
+        .fetch_one(pool)
+        .await?;
+    Ok(count)
 }

@@ -76,7 +76,7 @@ async fn main() {
 
     let app = routes::router(app_state);
 
-    let address = "127.0.0.1:3000";
+    let address = "0.0.0.0:3000";
 
     let listener = match tokio::net::TcpListener::bind(address).await {
         Ok(lst) => lst,
