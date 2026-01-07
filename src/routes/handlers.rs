@@ -1,4 +1,7 @@
-use axum::{Json, extract::State};
+use axum::{
+    Json,
+    extract::{Path, State},
+};
 
 use crate::{AppState, data::crud::Article, watcher::SourceFeed};
 
@@ -24,4 +27,14 @@ pub async fn list_feeds(State(state): State<AppState>) -> Json<Vec<SourceFeed>> 
 pub async fn all_articles(State(state): State<AppState>) -> Json<Vec<Article>> {
     let artiles = crate::data::crud::get_articles(&state.pool).await;
     Json(artiles)
+}
+
+pub async fn search(
+    Path(query): Path<String>,
+    State(state): State<AppState>,
+) -> Json<Vec<Article>> {
+    let q = format!("%{}%", query);
+    let articles = crate::data::crud::get_like(&q, &state.pool).await;
+    tracing::info!("{} - {} results", query, articles.len());
+    Json(articles)
 }

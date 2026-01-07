@@ -1,9 +1,6 @@
-#![allow(unused_variables)]
-#![allow(dead_code)]
-use std::{
-    sync::{Arc, atomic::AtomicU64},
-    vec,
-};
+// #![allow(unused_variables)]
+// #![allow(dead_code)]
+use std::{sync::Arc, vec};
 
 use sqlx::SqlitePool;
 use tokio::sync::RwLock;
@@ -34,7 +31,7 @@ async fn main() {
         }
     };
 
-    let transaction_count = Arc::new(AtomicU64::new(0));
+    // let transaction_count = Arc::new(AtomicU64::new(0));
 
     let feeds = match watcher::read_file().await {
         Ok(f) => f,

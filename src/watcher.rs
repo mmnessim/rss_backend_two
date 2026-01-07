@@ -81,8 +81,7 @@ pub async fn parse_feed(feed: &SourceFeed, pool: &sqlx::SqlitePool) {
         let cursor = std::io::Cursor::new(bytes.to_vec());
         match feed_rs::parser::parse(cursor) {
             Ok(parsed) => {
-                let inserted =
-                    crate::data::crud::insert_from_rss(parsed.clone(), &feed.source, pool).await;
+                crate::data::crud::insert_from_rss(parsed.clone(), &feed.source, pool).await;
             }
             Err(e) => tracing::error!("Failed to parse feed {}: {:?}", feed.source, e),
         }

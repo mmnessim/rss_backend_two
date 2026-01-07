@@ -30,20 +30,28 @@ pub async fn get_articles(pool: &Pool<Sqlite>) -> Vec<Article> {
     return articles;
 }
 
-pub async fn put_article(pool: &Pool<Sqlite>, article: Article) -> u64 {
-    let row = match sqlx::query("INSERT INTO articles (title, description) VALUES (?, ?)")
-        .bind(article.title)
-        .bind(article.description)
-        .execute(pool)
-        .await
+pub async fn get_like(query: &str, pool: &Pool<Sqlite>) -> Vec<Article> {
+    let articles = match sqlx::query_as::<_, Article>(
+        r#"
+            SELECT * FROM articles 
+            WHERE title LIKE ?
+            OR description LIKE ?
+            ;
+        "#,
+    )
+    .bind(query)
+    .bind(query)
+    .fetch_all(pool)
+    .await
     {
-        Ok(r) => r.rows_affected(),
+        Ok(a) => a,
         Err(e) => {
-            println!("Error inserting article: {:?}", e);
-            0
+            tracing::error!("Error searching articles: {:?}", e);
+            vec![]
         }
     };
-    return row;
+
+    return articles;
 }
 
 pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &Pool<Sqlite>) -> u64 {
@@ -52,6 +60,7 @@ pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &Poo
         println!("No items found in feed from source: {}", source);
         return 0;
     }
+    let mut rows = 0;
 
     for item in items {
         let title = item
@@ -105,14 +114,15 @@ pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &Poo
             Err(e) => {
                 match e {
                     sqlx::Error::Database(e) => {
-                        // tracing::error!("Duplicate article: {:?}", e)
+                        tracing::error!("Duplicate article: {:?}", e)
                     },
                     other => tracing::error!("Insert failed: {:?}", other),
                 };
                 0
             }
         };
+        rows += res;
     }
 
-    return 0;
+    return rows;
 }
