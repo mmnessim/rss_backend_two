@@ -1,5 +1,7 @@
 // #![allow(unused_variables)]
 // #![allow(dead_code)]
+mod feature_check;
+
 use std::{sync::Arc, vec};
 
 use tokio::sync::RwLock;
