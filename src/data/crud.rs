@@ -121,15 +121,21 @@ pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &DbP
             .title
             .map_or_else(|| String::from("No Title"), |t| t.content);
 
+        // Remove any html tags that might exist
+        let clean_title = crate::util::remove_html(title);
+
         let mut description = item
             .content
             .map_or_else(|| String::from(""), |d| d.body.unwrap_or_default());
 
-        let summary = item.summary.map_or_else(|| String::from(""), |s| s.content);
-
+        // Use summary if no description
         if description.is_empty() {
+            let summary = item.summary.map_or_else(|| String::from(""), |s| s.content);
             description = summary;
         }
+
+        // Remove any html tags that might exist
+        let clean_description = crate::util::remove_html(description);
 
         let link = item.links.first().map(|l| l.href.clone());
 
@@ -156,9 +162,9 @@ pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &DbP
 
         let res = match sqlx::query(insert_sql)
             .bind(source)
-            .bind(title)
+            .bind(clean_title)
             .bind(link)
-            .bind(description)
+            .bind(clean_description)
             .bind(guid)
             .bind(time_added as i64)
             .bind(pub_date)

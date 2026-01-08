@@ -10,6 +10,7 @@ use crate::{data::DbPool, watcher::SourceFeed};
 
 mod data;
 mod routes;
+mod util;
 mod watcher;
 
 #[tokio::main]

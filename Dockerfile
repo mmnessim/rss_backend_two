@@ -21,17 +21,17 @@ FROM chef AS planner
 COPY Cargo.toml Cargo.lock ./
 RUN mkdir -p src \
  	&& printf "%s" "fn main() {}" > src/main.rs
-RUN cargo chef prepare --recipe-path recipe.json
+RUN cargo chef prepare --recipe-path recipe.json 
 
 # Build dependencies, then the application
 FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json --features postgres
 
 # Now copy full source and build the final binary
 COPY . .
 # Explicitly name the binary to match [package.name] in Cargo.toml
-RUN cargo build --release --locked --bin rss_backend
+RUN cargo build --release --locked --bin rss_backend --no-default-features --features postgres
 
 # Minimal runtime image
 FROM debian:bookworm-slim AS runtime
