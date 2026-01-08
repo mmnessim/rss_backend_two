@@ -4,6 +4,8 @@ use notify::{Event, RecursiveMode, Watcher};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
+use crate::data::DbPool;
+
 /// Watches the feeds.json file for changes and updates in-memory store of feeds on changes
 pub async fn file_watcher(feeds_store_clone: Arc<RwLock<Vec<SourceFeed>>>) {
     let (tx, mut rx) = tokio::sync::mpsc::channel::<notify::Result<Event>>(100);
@@ -64,7 +66,7 @@ pub async fn read_file()
 }
 
 /// Fetches a feed from url with `reqwest` then parses with `feed_rs` and adds to database
-pub async fn parse_feed(feed: &SourceFeed, pool: &sqlx::SqlitePool) {
+pub async fn parse_feed(feed: &SourceFeed, pool: &DbPool) {
     let resp = match reqwest::get(&feed.url).await {
         Ok(resp) => resp,
         Err(e) => {

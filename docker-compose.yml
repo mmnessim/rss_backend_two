@@ -4,9 +4,25 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # # persist DB/files written to the container working dir (adjust if your DB path differs)
-      # - ./data:/app
       - ./feeds.json:/app/feeds.json:ro
     environment:
       - RUST_LOG=info
+      - DATABASE_URL=postgres://rss_user:rss_pass@db:5432/rss_db
+    depends_on:
+      - db
     restart: unless-stopped
+
+  db:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_USER=rss_user
+      - POSTGRES_PASSWORD=rss_pass
+      - POSTGRES_DB=rss_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -3,6 +3,11 @@ name = "rss_backend"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["sqlite"]
+sqlite = ["sqlx/sqlite"]
+postgres = ["sqlx/postgres"]
+
 [dependencies]
 axum = "0.8.8"
 serde = { version = "1.0", features = ["derive"] }
@@ -17,7 +22,7 @@ sqlx = { version = "0.8", features = [
     "sqlite",
     "macros",
     "migrate",
-    "runtime-tokio-native-tls",
+    "runtime-tokio-rustls",
 ] }
 
 

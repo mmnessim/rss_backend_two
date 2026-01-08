@@ -2,12 +2,11 @@
 // #![allow(dead_code)]
 use std::{sync::Arc, vec};
 
-use sqlx::SqlitePool;
 use tokio::sync::RwLock;
 use tracing::Level;
 use tracing_subscriber::EnvFilter;
 
-use crate::watcher::SourceFeed;
+use crate::{data::DbPool, watcher::SourceFeed};
 
 mod data;
 mod routes;
@@ -92,6 +91,6 @@ async fn main() {
 
 #[derive(Clone)]
 pub struct AppState {
-    pub pool: SqlitePool,
+    pub pool: DbPool,
     pub feeds: Arc<RwLock<Vec<SourceFeed>>>,
 }

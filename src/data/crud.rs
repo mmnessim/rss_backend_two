@@ -1,9 +1,11 @@
 use serde::{Deserialize, Serialize};
-use sqlx::{Pool, Sqlite, prelude::FromRow};
+use sqlx::prelude::FromRow;
+
+use crate::data::DbPool;
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct DbArticle {
-    pub id: u64,
+    pub id: i64,
     pub rss_source: String,
     pub title: String,
     pub link: Option<String>,
@@ -17,7 +19,7 @@ pub struct DbArticle {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Article {
-    pub id: u64,
+    pub id: i64,
     #[serde(rename = "rssSource")]
     pub rss_source: String,
     pub title: String,
@@ -58,7 +60,7 @@ impl From<DbArticle> for Article {
     }
 }
 
-pub async fn get_articles(pool: &Pool<Sqlite>) -> Vec<Article> {
+pub async fn get_articles(pool: &DbPool) -> Vec<Article> {
     let articles = match sqlx::query_as::<_, DbArticle>("SELECT * FROM articles;")
         .fetch_all(pool)
         .await
@@ -73,20 +75,28 @@ pub async fn get_articles(pool: &Pool<Sqlite>) -> Vec<Article> {
     return articles.into_iter().map(Article::from).collect();
 }
 
-pub async fn get_like(query: &str, pool: &Pool<Sqlite>) -> Vec<Article> {
-    let articles = match sqlx::query_as::<_, DbArticle>(
+pub async fn get_like(query: &str, pool: &DbPool) -> Vec<Article> {
+    let sql = if cfg!(feature = "postgres") {
         r#"
-            SELECT * FROM articles 
+            SELECT * FROM articles
+            WHERE title LIKE $1
+            OR description LIKE $2
+            LIMIT 100
+        "#
+    } else {
+        r#"
+            SELECT * FROM articles
             WHERE title LIKE ?
             OR description LIKE ?
             LIMIT 100
-            ;
-        "#,
-    )
-    .bind(query)
-    .bind(query)
-    .fetch_all(pool)
-    .await
+        "#
+    };
+
+    let articles = match sqlx::query_as::<_, DbArticle>(sql)
+        .bind(query)
+        .bind(query)
+        .fetch_all(pool)
+        .await
     {
         Ok(a) => a,
         Err(e) => {
@@ -98,7 +108,7 @@ pub async fn get_like(query: &str, pool: &Pool<Sqlite>) -> Vec<Article> {
     return articles.into_iter().map(Article::from).collect();
 }
 
-pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &Pool<Sqlite>) -> u64 {
+pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &DbPool) -> u64 {
     let items = rss.entries;
     if items.is_empty() {
         println!("No items found in feed from source: {}", source);
@@ -138,28 +148,33 @@ pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &Poo
             .collect::<Vec<String>>()
             .join(",");
 
-        let res = match sqlx::query(
-        "INSERT INTO articles (rss_source, title, link, description, guid, time_added, pub_date, categories) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    )
-        .bind(source)
-        .bind(title)
-        .bind(link)
-        .bind(description)
-        .bind(guid)
-        .bind(time_added as i64)
-        .bind(pub_date)
-        .bind(categories)
-        .execute(pool)
-        .await {
-            Ok(r) =>{
+        let insert_sql = if cfg!(feature = "postgres") {
+            "INSERT INTO articles (rss_source, title, link, description, guid, time_added, pub_date, categories) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
+        } else {
+            "INSERT INTO articles (rss_source, title, link, description, guid, time_added, pub_date, categories) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        };
+
+        let res = match sqlx::query(insert_sql)
+            .bind(source)
+            .bind(title)
+            .bind(link)
+            .bind(description)
+            .bind(guid)
+            .bind(time_added as i64)
+            .bind(pub_date)
+            .bind(categories)
+            .execute(pool)
+            .await
+        {
+            Ok(r) => {
                 r.rows_affected()
                 // tracing::info!("Inserted article from rss source: {}", source); r.rows_affected()
-            },
+            }
             Err(e) => {
                 match e {
-                    sqlx::Error::Database(e) => {
+                    sqlx::Error::Database(_e) => {
                         //tracing::error!("Duplicate article: {:?}", e)
-                    },
+                    }
                     other => tracing::error!("Insert failed: {:?}", other),
                 };
                 0
@@ -171,7 +186,7 @@ pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &Poo
     return rows;
 }
 
-pub async fn count_articles(pool: &Pool<Sqlite>) -> Result<i64, sqlx::Error> {
+pub async fn count_articles(pool: &DbPool) -> Result<i64, sqlx::Error> {
     let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM articles")
         .fetch_one(pool)
         .await?;
