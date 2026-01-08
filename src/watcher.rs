@@ -26,12 +26,7 @@ pub async fn file_watcher(feeds_store_clone: Arc<RwLock<Vec<SourceFeed>>>) {
         match res {
             Ok(event) => {
                 tracing::info!("event: {:?} {:?}", event.kind, event.paths);
-                if event.kind
-                    == notify::EventKind::Modify(notify::event::ModifyKind::Data(
-                        notify::event::DataChange::Content,
-                    ))
-                //|| event.kind ==
-                {
+                if event.kind.is_modify() {
                     tracing::info!("Feeds.json changed: {:?}", event.kind);
                     if let Ok(new_feeds) = read_file().await {
                         let mut w = feeds_store_clone.write().await;
