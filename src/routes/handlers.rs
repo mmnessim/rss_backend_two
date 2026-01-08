@@ -42,7 +42,7 @@ pub async fn stats(State(state): State<AppState>) -> Json<Stats> {
 
     Json(Stats {
         num_articles,
-        num_feeds,
+        num_sources: num_feeds,
     })
 }
 
@@ -68,5 +68,5 @@ pub async fn health() -> StatusCode {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stats {
     num_articles: i64,
-    num_feeds: i64,
+    num_sources: i64,
 }
