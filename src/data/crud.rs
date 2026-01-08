@@ -158,7 +158,7 @@ pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &Poo
             Err(e) => {
                 match e {
                     sqlx::Error::Database(e) => {
-                        tracing::error!("Duplicate article: {:?}", e)
+                        //tracing::error!("Duplicate article: {:?}", e)
                     },
                     other => tracing::error!("Insert failed: {:?}", other),
                 };

@@ -554,5 +554,9 @@
     {
         "source": "Pro Publica",
         "url": "https://www.propublica.org/feeds/propublica/main"
+    },
+    {
+        "source": "Yahoo",
+        "url": "https://news.yahoo.com/rss/mostviewed"
     }
 ]
