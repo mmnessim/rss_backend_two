@@ -113,7 +113,7 @@ pub async fn get_like(query: &str, pool: &DbPool) -> Vec<Article> {
 pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &DbPool) -> u64 {
     let items = rss.entries;
     if items.is_empty() {
-        println!("No items found in feed from source: {}", source);
+        tracing::warn!("No items found in feed from source: {}", source);
         return 0;
     }
     let mut rows = 0;
