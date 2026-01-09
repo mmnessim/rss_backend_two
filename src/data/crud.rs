@@ -81,6 +81,7 @@ pub async fn get_like(query: &str, pool: &DbPool) -> Vec<Article> {
             SELECT * FROM articles
             WHERE title LIKE $1
             OR description LIKE $2
+            ORDER BY pub_date DESC NULLS LAST
             LIMIT 100
         "#
     } else {
@@ -88,6 +89,7 @@ pub async fn get_like(query: &str, pool: &DbPool) -> Vec<Article> {
             SELECT * FROM articles
             WHERE title LIKE ?
             OR description LIKE ?
+            ORDER BY (pub_date IS NULL), pub_date DESC
             LIMIT 100
         "#
     };
