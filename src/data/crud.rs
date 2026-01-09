@@ -28,6 +28,7 @@ pub struct Article {
     pub guid: Option<String>,
     // Just needed for deleting old articles
     pub time_added: i64,
+    #[serde(rename = "pubDateMs")]
     pub pub_date: Option<i64>,
     // Exposed as an array for the frontend
     pub categories: Vec<String>,
