@@ -7,17 +7,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::{AppState, data::crud::Article, watcher::SourceFeed};
 
-pub async fn root() -> &'static str {
-    "Hello world"
-}
-
-pub async fn panic_route() -> &'static str {
-    tokio::spawn(async {
-        panic!("intentional test panic");
-    });
-    "panic spawned"
-}
-
 pub async fn list_feeds(State(state): State<AppState>) -> Json<Vec<SourceFeed>> {
     let snapshot = {
         let r = state.feeds.read().await;
@@ -63,6 +52,16 @@ pub async fn search(
 
 pub async fn health() -> StatusCode {
     StatusCode::OK
+}
+
+pub async fn search_by_source(
+    Path(query): Path<String>,
+    State(state): State<AppState>,
+) -> Json<Vec<Article>> {
+    let q = format!("%{}%", query);
+    let articles = crate::data::crud::get_by_feed(&q, &state.pool).await;
+    tracing::info!("{} - {} results", query, articles.len());
+    Json(articles)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

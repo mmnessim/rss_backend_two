@@ -80,16 +80,16 @@ pub async fn get_like(query: &str, pool: &DbPool) -> Vec<Article> {
     let sql = if cfg!(feature = "postgres") {
         r#"
             SELECT * FROM articles
-            WHERE title LIKE $1
-            OR description LIKE $2
+            WHERE title ILIKE $1
+            OR description ILIKE $2
             ORDER BY pub_date DESC NULLS LAST
             LIMIT 100
         "#
     } else {
         r#"
             SELECT * FROM articles
-            WHERE title LIKE ?
-            OR description LIKE ?
+            WHERE title LIKE ? COLLATE NOCASE
+            OR description LIKE ? COLLATE NOCASE
             ORDER BY (pub_date IS NULL), pub_date DESC
             LIMIT 100
         "#
@@ -111,6 +111,39 @@ pub async fn get_like(query: &str, pool: &DbPool) -> Vec<Article> {
     return articles.into_iter().map(Article::from).collect();
 }
 
+pub async fn get_by_feed(feed: &str, pool: &DbPool) -> Vec<Article> {
+    let sql = if cfg!(feature = "postgres") {
+        r#"
+           SELECT * FROM articles
+           WHERE rss_source ILIKE $1
+           ORDER BY pub_date DESC NULLS LAST
+           LIMIT 100
+           "#
+    } else {
+        r#"
+           SELECT * FROM articles
+           WHERE rss_source LIKE ? COLLATE NOCASE
+           ORDER BY (pub_date IS NULL), pub_date DESC
+           LIMIT 100
+           "#
+    };
+
+    let articles = match sqlx::query_as::<_, DbArticle>(sql)
+        .bind(feed)
+        .fetch_all(pool)
+        .await
+    {
+        Ok(a) => a,
+        Err(e) => {
+            tracing::error!("Error fetching articles: {:?}", e);
+            return vec![];
+        }
+    };
+
+    articles.into_iter().map(Article::from).collect()
+}
+
+/// Parses feeds, checks for duplication, removes HTML and inserts into DB
 pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &DbPool) -> u64 {
     let items = rss.entries;
     if items.is_empty() {
