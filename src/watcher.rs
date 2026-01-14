@@ -70,7 +70,7 @@ pub async fn parse_feed(feed: &SourceFeed, pool: &DbPool) {
     let resp = match reqwest::get(&feed.url).await {
         Ok(resp) => resp,
         Err(e) => {
-            tracing::error!("Error fetching feed {} {:?}", feed.source, e);
+            tracing::debug!("Error fetching feed {} {:?}", feed.source, e);
             return;
         }
     };
@@ -81,7 +81,7 @@ pub async fn parse_feed(feed: &SourceFeed, pool: &DbPool) {
             Ok(parsed) => {
                 crate::data::crud::insert_from_rss(parsed.clone(), &feed.source, pool).await;
             }
-            Err(e) => tracing::error!("Failed to parse feed {}: {:?}", feed.source, e),
+            Err(e) => tracing::debug!("Failed to parse feed {}: {:?}", feed.source, e),
         }
     }
 }

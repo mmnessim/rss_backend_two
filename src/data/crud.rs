@@ -147,7 +147,7 @@ pub async fn get_by_feed(feed: &str, pool: &DbPool) -> Vec<Article> {
 pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &DbPool) -> u64 {
     let items = rss.entries;
     if items.is_empty() {
-        tracing::warn!("No items found in feed from source: {}", source);
+        tracing::debug!("No items found in feed from source: {}", source);
         return 0;
     }
     let mut rows = 0;
@@ -233,4 +233,31 @@ pub async fn count_articles(pool: &DbPool) -> Result<i64, sqlx::Error> {
         .fetch_one(pool)
         .await?;
     Ok(count)
+}
+
+pub async fn delete_old_articles(pool: &DbPool) -> Result<i64, sqlx::Error> {
+    let now_ms = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64;
+
+    let ms_per_month: i64 = 24 * 60 * 60 * 1000 * 30;
+    let cutoff = now_ms - ms_per_month;
+
+    let sql = if cfg!(feature = "postgres") {
+        "DELETE FROM articles WHERE time_added < $1"
+    } else {
+        "DELETE FROM articles WHERE time_added < ?"
+    };
+
+    let res = match sqlx::query(sql).bind(cutoff).execute(pool).await {
+        Ok(res) => res,
+        Err(e) => {
+            // tracing::error!("Error deleting articles: {:?}", e);
+            return Err(e);
+        }
+    };
+    let deleted = res.rows_affected() as i64;
+    // tracing::info!("Deleted {} articles older than 30 days", deleted,);
+    Ok(deleted)
 }

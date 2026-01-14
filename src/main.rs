@@ -71,6 +71,20 @@ async fn main() {
         }
     });
 
+    // Delete old articles once a day
+    tokio::spawn({
+        let pool_clone = pool.clone();
+        async move {
+            loop {
+                match crate::data::crud::delete_old_articles(&pool_clone).await {
+                    Ok(n) => tracing::info!("Pruned {} old articles", n),
+                    Err(e) => tracing::error!("Error pruning old articles: {:?}", e),
+                }
+                tokio::time::sleep(std::time::Duration::from_secs(60 * 60 * 24)).await;
+            }
+        }
+    });
+
     let app_state = AppState {
         pool: pool.clone(),
         feeds: feeds_store.clone(),
