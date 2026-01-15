@@ -602,5 +602,57 @@
   {
     "source": "New England Journal of Medicine",
     "url": "https://onesearch-rss.nejm.org/api/specialty/rss?context=nejm&specialty=hematology-oncology"
+  },
+  {
+    "source": "New England Journal of Medicine",
+    "url": "https://onesearch-rss.nejm.org/api/specialty/rss?context=nejm&specialty=geriatrics-aging"
+  },
+  {
+    "source": "New England Journal of Medicine",
+    "url": "https://onesearch-rss.nejm.org/api/specialty/rss?context=nejm&specialty=health-policy"
+  },
+  {
+    "source": "New England Journal of Medicine",
+    "url": "https://onesearch-rss.nejm.org/api/specialty/rss?context=nejm&specialty=genetics"
+  },
+  {
+    "source": "New England Journal of Medicine",
+    "url": "https://onesearch-rss.nejm.org/api/specialty/rss?context=nejm&specialty=gastroenterology"
+  },
+  {
+    "source": "New England Journal of Medicine",
+    "url": "https://onesearch-rss.nejm.org/api/specialty/rss?context=nejm&specialty=endocrinology"
+  },
+  {
+    "source": "New England Journal of Medicine",
+    "url": "https://onesearch-rss.nejm.org/api/specialty/rss?context=nejm&specialty=emergency-medicine"
+  },
+  {
+    "source": "New England Journal of Medicine",
+    "url": "https://onesearch-rss.nejm.org/api/specialty/rss?context=nejm&specialty=dermatology"
+  },
+  {
+    "source": "New England Journal of Medicine",
+    "url": "https://onesearch-rss.nejm.org/api/specialty/rss?context=nejm&specialty=clinical-medicine"
+  },
+  {
+    "source": "New England Journal of Medicine",
+    "url": "https://onesearch-rss.nejm.org/api/specialty/rss?context=nejm&specialty=cardiology"
+  },
+  {
+    "source": "New England Journal of Medicine",
+    "url": "https://onesearch-rss.nejm.org/api/specialty/rss?context=nejm&specialty=allergy-immunology"
+  },
+  {
+    "source": "JAMA",
+    "url": "https://jamanetwork.com/rss/site_3/67.xml"
+  },
+  {
+    "source": "Science News",
+    "url": "https://www.sciencenews.org/feed"
+  },
+  {
+    "source": "Arts Journal",
+    "url": "https://www.artsjournal.com/feed"
   }
 ]
