@@ -654,5 +654,85 @@
   {
     "source": "Arts Journal",
     "url": "https://www.artsjournal.com/feed"
+  },
+  {
+    "source": "CBC",
+    "url": "https://www.cbc.ca/webfeed/rss/rss-topstories"
+  },
+  {
+    "source": "CBC",
+    "url": "https://www.cbc.ca/webfeed/rss/rss-world"
+  },
+  {
+    "source": "CBC",
+    "url": "https://www.cbc.ca/webfeed/rss/rss-canada"
+  },
+  {
+    "source": "CBC",
+    "url": "https://www.cbc.ca/webfeed/rss/rss-politics"
+  },
+  {
+    "source": "CBC",
+    "url": "https://www.cbc.ca/webfeed/rss/rss-business"
+  },
+  {
+    "source": "CBC",
+    "url": "https://www.cbc.ca/webfeed/rss/rss-health"
+  },
+  {
+    "source": "CBC",
+    "url": "https://www.cbc.ca/webfeed/rss/rss-arts"
+  },
+  {
+    "source": "CBC",
+    "url": "https://www.cbc.ca/webfeed/rss/rss-technology"
+  },
+  {
+    "source": "CBC",
+    "url": "https://www.cbc.ca/webfeed/rss/rss-indigenous"
+  },
+  {
+    "source": "The Guardian",
+    "url": "https://www.theguardian.com/us/rss"
+  },
+  {
+    "source": "The Guardian",
+    "url": "https://www.theguardian.com/us/commentisfree/rss"
+  },
+  {
+    "source": "The Guardian",
+    "url": "https://www.theguardian.com/us/sport/rss"
+  },
+  {
+    "source": "The Guardian",
+    "url": "https://www.theguardian.com/us/culture/rss"
+  },
+  {
+    "source": "The Guardian",
+    "url": "https://www.theguardian.com/world/rss"
+  },
+  {
+    "source": "The Guardian",
+    "url": "https://www.theguardian.com/world/europe-news/rss"
+  },
+  {
+    "source": "The Guardian",
+    "url": "https://www.theguardian.com/world/americas/rss"
+  },
+  {
+    "source": "The Guardian",
+    "url": "https://www.theguardian.com/world/asia/rss"
+  },
+  {
+    "source": "The Guardian",
+    "url": "https://www.theguardian.com/australia-news/rss"
+  },
+  {
+    "source": "The Guardian",
+    "url": "https://www.theguardian.com/world/middleeast/rss"
+  },
+  {
+    "source": "The Guardian",
+    "url": "https://www.theguardian.com/science/rss"
   }
 ]
