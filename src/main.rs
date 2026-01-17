@@ -29,7 +29,7 @@ async fn main() {
     .unwrap();
     let meili_articles = client.index("articles");
     meili_articles
-        .set_sortable_attributes(&["pub_date"])
+        .set_sortable_attributes(&["pubDateMs"])
         .await
         .unwrap();
 

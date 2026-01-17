@@ -58,7 +58,7 @@ pub async fn meili_search(
         .meili
         .search()
         .with_query(&query)
-        .with_sort(&["pub_date:desc"])
+        .with_sort(&["pubDateMs:desc"])
         .with_limit(100)
         .execute::<Article>()
         .await
