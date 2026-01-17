@@ -63,7 +63,9 @@ pub async fn meili_search(
         .await
         .unwrap();
 
+    tracing::info!("Searching with meili...");
     let articles: Vec<Article> = results.hits.into_iter().map(|hit| hit.result).collect();
+
     Json(articles)
 }
 
