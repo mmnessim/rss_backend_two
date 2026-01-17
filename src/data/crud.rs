@@ -1,3 +1,4 @@
+use ammonia::clean;
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 
@@ -144,7 +145,12 @@ pub async fn get_by_feed(feed: &str, pool: &DbPool) -> Vec<Article> {
 }
 
 /// Parses feeds, checks for duplication, removes HTML and inserts into DB
-pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &DbPool) -> u64 {
+pub async fn insert_from_rss(
+    rss: feed_rs::model::Feed,
+    source: &str,
+    pool: &DbPool,
+    meili_articles: &meilisearch_sdk::indexes::Index,
+) -> u64 {
     let items = rss.entries;
     if items.is_empty() {
         tracing::debug!("No items found in feed from source: {}", source);
@@ -196,6 +202,18 @@ pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &DbP
             "INSERT INTO articles (rss_source, title, link, description, guid, time_added, pub_date, categories) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         };
 
+        let article = Article {
+            id: 0,
+            rss_source: source.to_string(),
+            title: clean_title.clone(),
+            link: link.clone(),
+            description: clean_description.clone(),
+            guid: Some(guid.clone()),
+            time_added: time_added as i64,
+            pub_date,
+            categories: categories.split(',').map(|s| s.to_string()).collect(),
+        };
+
         let res = match sqlx::query(insert_sql)
             .bind(source)
             .bind(clean_title)
@@ -223,6 +241,10 @@ pub async fn insert_from_rss(rss: feed_rs::model::Feed, source: &str, pool: &DbP
             }
         };
         rows += res;
+
+        if res > 0 {
+            let _ = meili_articles.add_documents(&[&article], Some("id")).await;
+        }
     }
 
     return rows;

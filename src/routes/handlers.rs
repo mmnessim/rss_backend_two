@@ -58,11 +58,12 @@ pub async fn meili_search(
         .meili
         .search()
         .with_query(&query)
-        .with_limit(50) // or any limit you want
+        .with_limit(100) // or any limit you want
         .execute::<Article>() // <-- Deserialize directly into Article
         .await
         .unwrap();
 
+    println!("{:?}", results.facet_distribution);
     tracing::info!("Searching with meili...");
     let articles: Vec<Article> = results.hits.into_iter().map(|hit| hit.result).collect();
 

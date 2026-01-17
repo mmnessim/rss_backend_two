@@ -60,6 +60,7 @@ async fn main() {
 
     let feeds_clone_fetch = feeds_store.clone();
     let pool_clone_fetch = pool.clone();
+    let meili_clone = meili_articles.clone();
 
     // Watch feeds.json
     tokio::spawn(async move { watcher::file_watcher(feeds_store_update).await });
@@ -74,8 +75,9 @@ async fn main() {
 
             for feed in snapshot {
                 let pool2 = pool_clone_fetch.clone();
+                let index2 = meili_clone.clone();
                 tokio::spawn(async move {
-                    watcher::parse_feed(&feed, &pool2).await;
+                    watcher::parse_feed(&feed, &pool2, &index2).await;
                 });
             }
 
