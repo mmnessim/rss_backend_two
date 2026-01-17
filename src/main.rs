@@ -28,6 +28,10 @@ async fn main() {
     )
     .unwrap();
     let meili_articles = client.index("articles");
+    meili_articles
+        .set_sortable_attributes(&["pub_date"])
+        .await
+        .unwrap();
 
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env().add_directive(Level::INFO.into()))

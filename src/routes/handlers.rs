@@ -58,8 +58,9 @@ pub async fn meili_search(
         .meili
         .search()
         .with_query(&query)
-        .with_limit(100) // or any limit you want
-        .execute::<Article>() // <-- Deserialize directly into Article
+        .with_sort(&["pub_date:desc"])
+        .with_limit(100)
+        .execute::<Article>()
         .await
         .unwrap();
 
