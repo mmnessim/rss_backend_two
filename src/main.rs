@@ -4,11 +4,15 @@ mod feature_check;
 
 use std::{sync::Arc, vec};
 
+use meilisearch_sdk::client::Client;
 use tokio::sync::RwLock;
 use tracing::Level;
 use tracing_subscriber::EnvFilter;
 
-use crate::{data::DbPool, watcher::SourceFeed};
+use crate::{
+    data::{DbPool, crud},
+    watcher::SourceFeed,
+};
 
 mod data;
 mod routes;
@@ -17,6 +21,14 @@ mod watcher;
 
 #[tokio::main]
 async fn main() {
+    // Meilisearch
+    let client = Client::new(
+        "http://meilisearch:7700",
+        None::<String>, // Some("NtVfuVhJdfgkHgg4oj_TPx4wKP4osvQqy50esqMNcEo"),
+    )
+    .unwrap();
+    let meili_articles = client.index("articles");
+
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env().add_directive(Level::INFO.into()))
         .init();
@@ -85,9 +97,14 @@ async fn main() {
         }
     });
 
+    // Backfill articles
+    let articles = crud::get_articles(&pool).await;
+    let _ = meili_articles.add_documents(&articles, Some("id")).await;
+
     let app_state = AppState {
         pool: pool.clone(),
         feeds: feeds_store.clone(),
+        meili: meili_articles,
     };
 
     let app = routes::router(app_state);
@@ -110,4 +127,5 @@ async fn main() {
 pub struct AppState {
     pub pool: DbPool,
     pub feeds: Arc<RwLock<Vec<SourceFeed>>>,
+    pub meili: meilisearch_sdk::indexes::Index,
 }

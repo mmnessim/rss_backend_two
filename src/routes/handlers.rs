@@ -50,6 +50,23 @@ pub async fn search(
     Json(articles)
 }
 
+pub async fn meili_search(
+    Path(query): Path<String>,
+    State(state): State<AppState>,
+) -> Json<Vec<Article>> {
+    let results = state
+        .meili
+        .search()
+        .with_query(&query)
+        .with_limit(50) // or any limit you want
+        .execute::<Article>() // <-- Deserialize directly into Article
+        .await
+        .unwrap();
+
+    let articles: Vec<Article> = results.hits.into_iter().map(|hit| hit.result).collect();
+    Json(articles)
+}
+
 pub async fn health() -> StatusCode {
     StatusCode::OK
 }
