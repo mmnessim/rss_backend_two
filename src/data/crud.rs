@@ -159,77 +159,38 @@ pub async fn insert_from_rss(
     let mut rows = 0;
 
     for item in items {
-        let title = item
-            .title
-            .map_or_else(|| String::from("No Title"), |t| t.content);
-
-        // Remove any html tags that might exist
-        let clean_title = crate::util::remove_html(title);
-
-        let mut description = item
-            .content
-            .map_or_else(|| String::from(""), |d| d.body.unwrap_or_default());
-
-        // Use summary if no description
-        if description.is_empty() {
-            let summary = item.summary.map_or_else(|| String::from(""), |s| s.content);
-            description = summary;
-        }
-
-        // Remove any html tags that might exist
-        let clean_description = crate::util::remove_html(description);
-
-        let link = item.links.first().map(|l| l.href.clone());
-
-        let guid = item.id.clone();
-
-        let time_added = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis() as u64;
-
-        let pub_date = item.published.map(|d| d.timestamp_millis() as i64);
-        let categories = item
-            .categories
-            .iter()
-            .map(|c| c.term.clone())
-            .collect::<Vec<String>>()
-            .join(",");
+        let mut article = row_to_article(item, source);
 
         let insert_sql = if cfg!(feature = "postgres") {
-            "INSERT INTO articles (rss_source, title, link, description, guid, time_added, pub_date, categories) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
+            r#"INSERT INTO articles (rss_source, title, link, description, guid, time_added, pub_date, categories)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (guid) DO NOTHING
+            RETURNING id
+                "#
         } else {
-            "INSERT INTO articles (rss_source, title, link, description, guid, time_added, pub_date, categories) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+            r#"INSERT OR IGNORE INTO articles
+            (rss_source, title, link, description, guid, time_added, pub_date, categories)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)"#
         };
 
-        let article = Article {
-            id: 0,
-            rss_source: source.to_string(),
-            title: clean_title.clone(),
-            link: link.clone(),
-            description: clean_description.clone(),
-            guid: Some(guid.clone()),
-            time_added: time_added as i64,
-            pub_date,
-            categories: categories.split(',').map(|s| s.to_string()).collect(),
-        };
-
-        let res = match sqlx::query(insert_sql)
+        match sqlx::query_scalar::<_, i64>(insert_sql)
             .bind(source)
-            .bind(clean_title)
-            .bind(link)
-            .bind(clean_description)
-            .bind(guid)
-            .bind(time_added as i64)
-            .bind(pub_date)
-            .bind(categories)
-            .execute(pool)
+            .bind(article.title.clone())
+            .bind(article.link.clone())
+            .bind(article.description.clone())
+            .bind(article.guid.clone())
+            .bind(article.time_added)
+            .bind(article.pub_date)
+            .bind(article.categories.join(","))
+            .fetch_optional(pool)
             .await
         {
-            Ok(r) => {
-                r.rows_affected()
-                // tracing::info!("Inserted article from rss source: {}", source); r.rows_affected()
+            Ok(Some(inserted)) => {
+                article.id = inserted;
+                rows += 1;
+                let _ = meili_articles.add_documents(&[&article], Some("id")).await;
             }
+            Ok(None) => {}
             Err(e) => {
                 match e {
                     sqlx::Error::Database(_e) => {
@@ -237,17 +198,62 @@ pub async fn insert_from_rss(
                     }
                     other => tracing::error!("Insert failed: {:?}", other),
                 };
-                0
             }
         };
-        rows += res;
-
-        if res > 0 {
-            let _ = meili_articles.add_documents(&[&article], Some("id")).await;
-        }
     }
 
     return rows;
+}
+
+fn row_to_article(item: feed_rs::model::Entry, source: &str) -> Article {
+    let title = item
+        .title
+        .map_or_else(|| String::from("No Title"), |t| t.content);
+
+    // Remove any html tags that might exist
+    let clean_title = crate::util::remove_html(title);
+
+    let mut description = item
+        .content
+        .map_or_else(|| String::from(""), |d| d.body.unwrap_or_default());
+
+    // Use summary if no description
+    if description.is_empty() {
+        let summary = item.summary.map_or_else(|| String::from(""), |s| s.content);
+        description = summary;
+    }
+
+    // Remove any html tags that might exist
+    let clean_description = crate::util::remove_html(description);
+
+    let link = item.links.first().map(|l| l.href.clone());
+
+    let guid = item.id.clone();
+
+    let time_added = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as u64;
+
+    let pub_date = item.published.map(|d| d.timestamp_millis() as i64);
+    let categories = item
+        .categories
+        .iter()
+        .map(|c| c.term.clone())
+        .collect::<Vec<String>>()
+        .join(",");
+
+    return Article {
+        id: 0,
+        rss_source: source.to_string(),
+        title: clean_title.clone(),
+        link: link.clone(),
+        description: clean_description.clone(),
+        guid: Some(guid.clone()),
+        time_added: time_added as i64,
+        pub_date,
+        categories: categories.split(',').map(|s| s.to_string()).collect(),
+    };
 }
 
 pub async fn count_articles(pool: &DbPool) -> Result<i64, sqlx::Error> {
