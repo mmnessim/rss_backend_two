@@ -35,7 +35,7 @@ pub async fn stats(State(state): State<AppState>) -> Json<Stats> {
     })
 }
 
-pub async fn all_articles(State(state): State<AppState>) -> Json<Vec<Article>> {
+pub async fn _all_articles(State(state): State<AppState>) -> Json<Vec<Article>> {
     let articles = crate::data::crud::get_articles(&state.pool).await;
     Json(articles)
 }
