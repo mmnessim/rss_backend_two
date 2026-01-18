@@ -22,11 +22,7 @@ mod watcher;
 #[tokio::main]
 async fn main() {
     // Meilisearch
-    let client = Client::new(
-        "http://meilisearch:7700",
-        None::<String>, // Some("NtVfuVhJdfgkHgg4oj_TPx4wKP4osvQqy50esqMNcEo"),
-    )
-    .unwrap();
+    let client = Client::new("http://meilisearch:7700", None::<String>).unwrap();
     let meili_articles = client.index("articles");
     meili_articles
         .set_sortable_attributes(&["pubDateMs"])

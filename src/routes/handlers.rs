@@ -5,7 +5,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{AppState, data::crud::Article, watcher::SourceFeed};
+use crate::{AppState, data::models::Article, watcher::SourceFeed};
 
 pub async fn list_feeds(State(state): State<AppState>) -> Json<Vec<SourceFeed>> {
     let snapshot = {
