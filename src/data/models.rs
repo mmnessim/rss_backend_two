@@ -31,3 +31,30 @@ pub struct Article {
     // Exposed as an array for the frontend
     pub categories: Vec<String>,
 }
+
+impl From<DbArticle> for Article {
+    fn from(d: DbArticle) -> Self {
+        let categories = d
+            .categories
+            .map(|s| {
+                if s.is_empty() {
+                    vec![]
+                } else {
+                    s.split(',').map(|s| s.to_string()).collect()
+                }
+            })
+            .unwrap_or_default();
+
+        Article {
+            id: d.id,
+            rss_source: d.rss_source,
+            title: d.title,
+            link: d.link,
+            description: d.description,
+            guid: d.guid,
+            time_added: d.time_added,
+            pub_date: d.pub_date,
+            categories,
+        }
+    }
+}

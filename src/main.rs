@@ -45,8 +45,6 @@ async fn main() {
         }
     };
 
-    // let transaction_count = Arc::new(AtomicU64::new(0));
-
     let feeds = match watcher::read_file().await {
         Ok(f) => f,
         Err(e) => {
