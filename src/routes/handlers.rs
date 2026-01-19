@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use axum::{
     Json,
     extract::{Path, State},
@@ -33,6 +35,22 @@ pub async fn stats(State(state): State<AppState>) -> Json<Stats> {
         num_articles,
         num_sources: num_feeds,
     })
+}
+
+pub async fn unique_sources(State(state): State<AppState>) -> Json<Vec<String>> {
+    let feeds = {
+        let r = state.feeds.read().await;
+        r.clone()
+    };
+
+    let mut set: HashSet<String> = HashSet::new();
+    for f in feeds {
+        set.insert(f.source);
+    }
+
+    let mut sources: Vec<String> = set.into_iter().collect();
+    sources.sort();
+    Json(sources)
 }
 
 pub async fn _all_articles(State(state): State<AppState>) -> Json<Vec<Article>> {

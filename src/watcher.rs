@@ -89,6 +89,6 @@ pub async fn parse_feed(feed: &SourceFeed, pool: &DbPool, index: &meilisearch_sd
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SourceFeed {
-    source: String,
-    url: String,
+    pub source: String,
+    pub url: String,
 }

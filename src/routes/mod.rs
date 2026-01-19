@@ -13,6 +13,7 @@ pub fn router(state: AppState) -> Router {
         .route("/legacy_search/{query}", get(handlers::search))
         .route("/search/{query}", get(handlers::meili_search))
         .route("/by-feed/{query}", get(handlers::search_by_source))
+        .route("/unique", get(handlers::unique_sources))
         // .route("/all", get(handlers::all_articles))
         .layer(middleware::from_fn(mw::log_request))
         .with_state(state)
