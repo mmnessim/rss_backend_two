@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use axum::{
     Json,
     extract::{Path, State},
@@ -5,7 +7,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{AppState, data::crud::Article, watcher::SourceFeed};
+use crate::{AppState, data::models::Article, watcher::SourceFeed};
 
 pub async fn list_feeds(State(state): State<AppState>) -> Json<Vec<SourceFeed>> {
     let snapshot = {
@@ -35,7 +37,23 @@ pub async fn stats(State(state): State<AppState>) -> Json<Stats> {
     })
 }
 
-pub async fn all_articles(State(state): State<AppState>) -> Json<Vec<Article>> {
+pub async fn unique_sources(State(state): State<AppState>) -> Json<Vec<String>> {
+    let feeds = {
+        let r = state.feeds.read().await;
+        r.clone()
+    };
+
+    let mut set: HashSet<String> = HashSet::new();
+    for f in feeds {
+        set.insert(f.source);
+    }
+
+    let mut sources: Vec<String> = set.into_iter().collect();
+    sources.sort();
+    Json(sources)
+}
+
+pub async fn _all_articles(State(state): State<AppState>) -> Json<Vec<Article>> {
     let articles = crate::data::crud::get_articles(&state.pool).await;
     Json(articles)
 }
@@ -47,6 +65,27 @@ pub async fn search(
     let q = format!("%{}%", query);
     let articles = crate::data::crud::get_like(&q, &state.pool).await;
     tracing::info!("{} - {} results", query, articles.len());
+    Json(articles)
+}
+
+pub async fn meili_search(
+    Path(query): Path<String>,
+    State(state): State<AppState>,
+) -> Json<Vec<Article>> {
+    let results = state
+        .meili
+        .search()
+        .with_query(&query)
+        .with_sort(&["pubDateMs:desc"])
+        .with_limit(100)
+        .execute::<Article>()
+        .await
+        .unwrap();
+
+    // println!("{:?}", results.facet_distribution);
+    // tracing::info!("Searching with meili...");
+    let articles: Vec<Article> = results.hits.into_iter().map(|hit| hit.result).collect();
+
     Json(articles)
 }
 

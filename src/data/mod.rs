@@ -1,4 +1,5 @@
 pub mod crud;
+pub mod models;
 
 #[cfg(feature = "sqlite")]
 pub type DbPool = sqlx::SqlitePool;

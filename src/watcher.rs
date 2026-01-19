@@ -66,7 +66,7 @@ pub async fn read_file()
 }
 
 /// Fetches a feed from url with `reqwest` then parses with `feed_rs` and adds to database
-pub async fn parse_feed(feed: &SourceFeed, pool: &DbPool) {
+pub async fn parse_feed(feed: &SourceFeed, pool: &DbPool, index: &meilisearch_sdk::indexes::Index) {
     let resp = match reqwest::get(&feed.url).await {
         Ok(resp) => resp,
         Err(e) => {
@@ -79,7 +79,8 @@ pub async fn parse_feed(feed: &SourceFeed, pool: &DbPool) {
         let cursor = std::io::Cursor::new(bytes.to_vec());
         match feed_rs::parser::parse(cursor) {
             Ok(parsed) => {
-                crate::data::crud::insert_from_rss(parsed.clone(), &feed.source, pool).await;
+                crate::data::crud::insert_from_rss(parsed.clone(), &feed.source, pool, &index)
+                    .await;
             }
             Err(e) => tracing::debug!("Failed to parse feed {}: {:?}", feed.source, e),
         }
@@ -88,6 +89,6 @@ pub async fn parse_feed(feed: &SourceFeed, pool: &DbPool) {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SourceFeed {
-    source: String,
-    url: String,
+    pub source: String,
+    pub url: String,
 }

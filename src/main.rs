@@ -4,11 +4,15 @@ mod feature_check;
 
 use std::{sync::Arc, vec};
 
+use meilisearch_sdk::client::Client;
 use tokio::sync::RwLock;
 use tracing::Level;
 use tracing_subscriber::EnvFilter;
 
-use crate::{data::DbPool, watcher::SourceFeed};
+use crate::{
+    data::{DbPool, crud},
+    watcher::SourceFeed,
+};
 
 mod data;
 mod routes;
@@ -17,6 +21,14 @@ mod watcher;
 
 #[tokio::main]
 async fn main() {
+    // Meilisearch
+    let client = Client::new("http://meilisearch:7700", None::<String>).unwrap();
+    let meili_articles = client.index("articles");
+    meili_articles
+        .set_sortable_attributes(&["pubDateMs"])
+        .await
+        .unwrap();
+
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env().add_directive(Level::INFO.into()))
         .init();
@@ -33,8 +45,6 @@ async fn main() {
         }
     };
 
-    // let transaction_count = Arc::new(AtomicU64::new(0));
-
     let feeds = match watcher::read_file().await {
         Ok(f) => f,
         Err(e) => {
@@ -48,6 +58,7 @@ async fn main() {
 
     let feeds_clone_fetch = feeds_store.clone();
     let pool_clone_fetch = pool.clone();
+    let meili_clone = meili_articles.clone();
 
     // Watch feeds.json
     tokio::spawn(async move { watcher::file_watcher(feeds_store_update).await });
@@ -62,8 +73,9 @@ async fn main() {
 
             for feed in snapshot {
                 let pool2 = pool_clone_fetch.clone();
+                let index2 = meili_clone.clone();
                 tokio::spawn(async move {
-                    watcher::parse_feed(&feed, &pool2).await;
+                    watcher::parse_feed(&feed, &pool2, &index2).await;
                 });
             }
 
@@ -85,9 +97,14 @@ async fn main() {
         }
     });
 
+    // Backfill articles
+    let articles = crud::get_articles(&pool).await;
+    let _ = meili_articles.add_documents(&articles, Some("id")).await;
+
     let app_state = AppState {
         pool: pool.clone(),
         feeds: feeds_store.clone(),
+        meili: meili_articles,
     };
 
     let app = routes::router(app_state);
@@ -110,4 +127,5 @@ async fn main() {
 pub struct AppState {
     pub pool: DbPool,
     pub feeds: Arc<RwLock<Vec<SourceFeed>>>,
+    pub meili: meilisearch_sdk::indexes::Index,
 }
