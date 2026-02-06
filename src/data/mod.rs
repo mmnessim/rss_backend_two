@@ -16,13 +16,13 @@ pub async fn initialize_database() -> Result<DbPool, Box<dyn std::error::Error>>
         return Err(e);
     }
 
-    // match sqlx::migrate!("src/data/migrations").run(&pool).await {
-    //     Ok(_) => tracing::info!("Migrations applied successfully"),
-    //     Err(e) => {
-    //         tracing::error!("Error applying migrations: {:?}", e);
-    //         return Err(Box::new(e) as Box<dyn std::error::Error>);
-    //     }
-    // }
+    match sqlx::migrate!("src/data/migrations").run(&pool).await {
+        Ok(_) => tracing::info!("Migrations applied successfully"),
+        Err(e) => {
+            tracing::error!("Error applying migrations: {:?}", e);
+            return Err(Box::new(e));
+        }
+    }
 
     Ok(pool)
 }
@@ -65,7 +65,7 @@ async fn create_table(pool: &DbPool) -> Result<(), Box<dyn std::error::Error>> {
         Ok(res) => tracing::info!("articles table initialized {:?}", res),
         Err(e) => {
             tracing::error!("Error executing query: {:?}", e);
-            return Err(Box::new(e) as Box<dyn std::error::Error>);
+            return Err(Box::new(e));
         }
     };
 
@@ -90,7 +90,7 @@ async fn create_table(pool: &DbPool) -> Result<(), Box<dyn std::error::Error>> {
         Ok(res) => tracing::info!("articles table initialized {:?}", res),
         Err(e) => {
             tracing::error!("Error executing query: {:?}", e);
-            return Err(Box::new(e) as Box<dyn std::error::Error>);
+            return Err(Box::new(e));
         }
     };
 

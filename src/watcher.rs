@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 use crate::data::DbPool;
+use crate::data::crud::insert_from_rss;
 
 /// Watches the feeds.json file for changes and updates in-memory store of feeds on changes
 pub async fn file_watcher(feeds_store_clone: Arc<RwLock<Vec<SourceFeed>>>) {
@@ -79,8 +80,7 @@ pub async fn parse_feed(feed: &SourceFeed, pool: &DbPool, index: &meilisearch_sd
         let cursor = std::io::Cursor::new(bytes.to_vec());
         match feed_rs::parser::parse(cursor) {
             Ok(parsed) => {
-                crate::data::crud::insert_from_rss(parsed.clone(), &feed.source, pool, &index)
-                    .await;
+                insert_from_rss(parsed.clone(), &feed.source, pool, &index).await;
             }
             Err(e) => tracing::debug!("Failed to parse feed {}: {:?}", feed.source, e),
         }
