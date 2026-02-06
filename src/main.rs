@@ -9,10 +9,8 @@ use tokio::sync::RwLock;
 use tracing::Level;
 use tracing_subscriber::EnvFilter;
 
-use crate::{
-    data::{DbPool, crud},
-    watcher::SourceFeed,
-};
+use crate::data::crud;
+use crate::util::watcher::{file_watcher, parse_feed, read_file};
 
 mod data;
 mod routes;
@@ -45,7 +43,7 @@ async fn main() {
         }
     };
 
-    let feeds = match watcher::read_file().await {
+    let feeds = match read_file().await {
         Ok(f) => f,
         Err(e) => {
             tracing::error!("Error reading feeds: {:?}", e);
@@ -61,7 +59,7 @@ async fn main() {
     let meili_clone = meili_articles.clone();
 
     // Watch feeds.json
-    tokio::spawn(async move { watcher::file_watcher(feeds_store_update).await });
+    tokio::spawn(async move { file_watcher(feeds_store_update).await });
 
     // Poll RSS feeds every 15 minutes
     tokio::spawn(async move {
@@ -75,7 +73,7 @@ async fn main() {
                 let pool2 = pool_clone_fetch.clone();
                 let index2 = meili_clone.clone();
                 tokio::spawn(async move {
-                    watcher::parse_feed(&feed, &pool2, &index2).await;
+                    parse_feed(&feed, &pool2, &index2).await;
                 });
             }
 
@@ -101,7 +99,7 @@ async fn main() {
     let articles = crud::get_articles(&pool).await;
     let _ = meili_articles.add_documents(&articles, Some("id")).await;
 
-    let app_state = AppState {
+    let app_state = data::models::AppState {
         pool: pool.clone(),
         feeds: feeds_store.clone(),
         meili: meili_articles,
@@ -121,11 +119,4 @@ async fn main() {
 
     tracing::info!("Listening on {}", listener.local_addr().unwrap());
     let _ = axum::serve(listener, app).await;
-}
-
-#[derive(Clone)]
-pub struct AppState {
-    pub pool: DbPool,
-    pub feeds: Arc<RwLock<Vec<SourceFeed>>>,
-    pub meili: meilisearch_sdk::indexes::Index,
 }

@@ -1,3 +1,5 @@
+pub mod watcher;
+
 pub fn remove_html(raw: String) -> String {
     if ammonia::is_html(&raw) {
         let plain = match html2text::from_read(raw.as_bytes(), raw.len()) {

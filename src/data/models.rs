@@ -1,5 +1,16 @@
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
+use std::sync::Arc;
+use tokio::sync::RwLock;
+
+use crate::data::DbPool;
+
+#[derive(Clone)]
+pub struct AppState {
+    pub pool: DbPool,
+    pub feeds: Arc<RwLock<Vec<SourceFeed>>>,
+    pub meili: meilisearch_sdk::indexes::Index,
+}
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct DbArticle {
@@ -57,4 +68,10 @@ impl From<DbArticle> for Article {
             categories,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SourceFeed {
+    pub source: String,
+    pub url: String,
 }

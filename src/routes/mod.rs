@@ -1,6 +1,6 @@
 use axum::{Router, middleware, routing::get};
 
-use crate::AppState;
+use crate::data::models::AppState;
 
 pub mod handlers;
 pub mod mw;
