@@ -9,6 +9,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::data::models::{AppState, Article, SourceFeed};
 
+/// Served at `/feeds`
+/// Returns a list of all `SourceFeeds`
 pub async fn list_feeds(State(state): State<AppState>) -> Json<Vec<SourceFeed>> {
     let snapshot = {
         let r = state.feeds.read().await;
@@ -17,6 +19,10 @@ pub async fn list_feeds(State(state): State<AppState>) -> Json<Vec<SourceFeed>> 
     Json(snapshot)
 }
 
+/// Served at `/stats`
+/// Returns a json object
+/// `{num_articles: int, num_feeds: int}`
+/// Used by frontend in About screen
 pub async fn stats(State(state): State<AppState>) -> Json<Stats> {
     let num_feeds = {
         let r = state.feeds.read().await;
@@ -37,6 +43,9 @@ pub async fn stats(State(state): State<AppState>) -> Json<Stats> {
     })
 }
 
+/// Served at `/unique`
+/// Returns the list of each individual unique news source
+/// Used by frontend to display in About and Options
 pub async fn unique_sources(State(state): State<AppState>) -> Json<Vec<String>> {
     let feeds = {
         let r = state.feeds.read().await;
@@ -53,11 +62,8 @@ pub async fn unique_sources(State(state): State<AppState>) -> Json<Vec<String>> 
     Json(sources)
 }
 
-pub async fn _all_articles(State(state): State<AppState>) -> Json<Vec<Article>> {
-    let articles = crate::data::crud::get_articles(&state.pool).await;
-    Json(articles)
-}
-
+/// Served at `/legacy_search/{query}`
+/// Plain searching with DB queries
 pub async fn search(
     Path(query): Path<String>,
     State(state): State<AppState>,
@@ -68,6 +74,9 @@ pub async fn search(
     Json(articles)
 }
 
+/// Served at `/search/{query}`
+/// Search results using Meilisearch limited to 100 sorted by most recent publication
+/// TODO: Consider additional parameters that could be passed by the frontend
 pub async fn meili_search(
     Path(query): Path<String>,
     State(state): State<AppState>,
@@ -82,27 +91,18 @@ pub async fn meili_search(
         .await
         .unwrap();
 
-    // println!("{:?}", results.facet_distribution);
-    // tracing::info!("Searching with meili...");
     let articles: Vec<Article> = results.hits.into_iter().map(|hit| hit.result).collect();
 
     Json(articles)
 }
 
+/// Served at `/health`
+/// Provides healthcheck
 pub async fn health() -> StatusCode {
     StatusCode::OK
 }
 
-pub async fn search_by_source(
-    Path(query): Path<String>,
-    State(state): State<AppState>,
-) -> Json<Vec<Article>> {
-    let q = format!("%{}%", query);
-    let articles = crate::data::crud::get_by_feed(&q, &state.pool).await;
-    tracing::info!("{} - {} results", query, articles.len());
-    Json(articles)
-}
-
+/// Struct for returning stats
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stats {
     num_articles: i64,

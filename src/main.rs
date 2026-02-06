@@ -96,7 +96,7 @@ async fn main() {
     });
 
     // Backfill articles
-    let articles = crud::get_articles(&pool).await;
+    let articles = crud::get_all_articles(&pool).await;
     let _ = meili_articles.add_documents(&articles, Some("id")).await;
 
     let app_state = data::models::AppState {

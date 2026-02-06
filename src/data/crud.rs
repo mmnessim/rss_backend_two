@@ -1,7 +1,9 @@
 use crate::data::DbPool;
 use crate::data::models::{Article, DbArticle};
 
-pub async fn get_articles(pool: &DbPool) -> Vec<Article> {
+/// Returns all articles
+/// Could be a very expensive call as articles will probably average over 50k
+pub async fn get_all_articles(pool: &DbPool) -> Vec<Article> {
     let articles = match sqlx::query_as::<_, DbArticle>("SELECT * FROM articles;")
         .fetch_all(pool)
         .await
@@ -16,6 +18,7 @@ pub async fn get_articles(pool: &DbPool) -> Vec<Article> {
     return articles.into_iter().map(Article::from).collect();
 }
 
+/// Simple search with DB queries
 pub async fn get_like(query: &str, pool: &DbPool) -> Vec<Article> {
     let sql = if cfg!(feature = "postgres") {
         r#"
@@ -51,7 +54,9 @@ pub async fn get_like(query: &str, pool: &DbPool) -> Vec<Article> {
     return articles.into_iter().map(Article::from).collect();
 }
 
-pub async fn get_by_feed(feed: &str, pool: &DbPool) -> Vec<Article> {
+/// Not currently used
+/// Simple search but sorting by feed
+pub async fn _get_by_feed(feed: &str, pool: &DbPool) -> Vec<Article> {
     let sql = if cfg!(feature = "postgres") {
         r#"
            SELECT * FROM articles
@@ -144,6 +149,7 @@ pub async fn insert_from_rss(
     return rows;
 }
 
+/// Helper function to turn individual RSS item into Article struct
 fn row_to_article(item: feed_rs::model::Entry, source: &str) -> Article {
     let title = item
         .title
@@ -195,6 +201,7 @@ fn row_to_article(item: feed_rs::model::Entry, source: &str) -> Article {
     };
 }
 
+/// Return article count
 pub async fn count_articles(pool: &DbPool) -> Result<i64, sqlx::Error> {
     let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM articles")
         .fetch_one(pool)
@@ -202,7 +209,9 @@ pub async fn count_articles(pool: &DbPool) -> Result<i64, sqlx::Error> {
     Ok(count)
 }
 
+/// Delete articles that are older than 30 days
 pub async fn delete_old_articles(pool: &DbPool) -> Result<i64, sqlx::Error> {
+    tracing::info!("Checking for old articles...");
     let now_ms = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
@@ -225,6 +234,6 @@ pub async fn delete_old_articles(pool: &DbPool) -> Result<i64, sqlx::Error> {
         }
     };
     let deleted = res.rows_affected() as i64;
-    // tracing::info!("Deleted {} articles older than 30 days", deleted,);
+    tracing::info!("Deleted {} articles older than 30 days", deleted,);
     Ok(deleted)
 }
