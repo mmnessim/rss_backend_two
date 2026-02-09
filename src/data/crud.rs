@@ -202,7 +202,7 @@ fn row_to_article(item: feed_rs::model::Entry, source: &str) -> Article {
         description: clean_description.clone(),
         guid: Some(guid.clone()),
         time_added: time_added as i64,
-        pub_date,
+        pub_date: Some(pub_date),
         categories: categories.split(',').map(|s| s.to_string()).collect(),
     };
 }

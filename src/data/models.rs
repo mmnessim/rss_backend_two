@@ -37,8 +37,8 @@ pub struct Article {
     pub guid: Option<String>,
     // Just needed for deleting old articles
     pub time_added: i64,
-    #[serde(rename = "pubDateMs")]
-    pub pub_date: i64,
+    #[serde(rename = "pubDateMs", default)]
+    pub pub_date: Option<i64>,
     // Exposed as an array for the frontend
     pub categories: Vec<String>,
 }
@@ -56,11 +56,6 @@ impl From<DbArticle> for Article {
             })
             .unwrap_or_default();
 
-        let article_pubdate = match d.pub_date {
-            Some(ts) => ts,
-            None => 0,
-        };
-
         Article {
             id: d.id,
             rss_source: d.rss_source,
@@ -69,7 +64,7 @@ impl From<DbArticle> for Article {
             description: d.description,
             guid: d.guid,
             time_added: d.time_added,
-            pub_date: article_pubdate,
+            pub_date: d.pub_date,
             categories,
         }
     }

@@ -81,7 +81,7 @@ pub async fn meili_search(
     Path(query): Path<String>,
     State(state): State<AppState>,
 ) -> Json<Vec<Article>> {
-    let results = state
+    let results = match state
         .meili
         .search()
         .with_query(&query)
@@ -89,7 +89,22 @@ pub async fn meili_search(
         .with_limit(100)
         .execute::<Article>()
         .await
-        .unwrap();
+    {
+        Ok(res) => res,
+        Err(e) => {
+            // Fallback to only pubDateMs sorting if error
+            tracing::error!("Error getting results: {}", e);
+            state
+                .meili
+                .search()
+                .with_query(&query)
+                .with_sort(&["pubDateMs:desc"])
+                .with_limit(100)
+                .execute::<Article>()
+                .await
+                .unwrap()
+        }
+    };
 
     let articles: Vec<Article> = results.hits.into_iter().map(|hit| hit.result).collect();
 
