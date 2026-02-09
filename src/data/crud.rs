@@ -180,7 +180,13 @@ fn row_to_article(item: feed_rs::model::Entry, source: &str) -> Article {
         .unwrap_or_default()
         .as_millis() as u64;
 
-    let pub_date = item.published.map(|d| d.timestamp_millis() as i64);
+    let pub_date = match item.published {
+        Some(t) => t.timestamp_millis() as i64,
+        None => std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis() as i64,
+    };
     let categories = item
         .categories
         .iter()

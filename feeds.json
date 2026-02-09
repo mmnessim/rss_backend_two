@@ -806,5 +806,9 @@
   {
     "source": "CNET",
     "url": "https://www.cnet.com/rss/news/"
+  },
+  {
+    "source": "Real Clear Politics",
+    "url": "https://www.realclearpolitics.com/index.xml"
   }
 ]
