@@ -25,7 +25,7 @@ async fn main() {
     let client = Client::new("http://meilisearch:7700", None::<String>).unwrap();
     let meili_articles = client.index("articles");
     meili_articles
-        .set_sortable_attributes(&["pubDateMs"])
+        .set_sortable_attributes(&["timeAdded"])
         .await
         .unwrap();
 

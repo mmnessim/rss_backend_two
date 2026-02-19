@@ -22,7 +22,7 @@ pub async fn get_like(query: &str, pool: &DbPool) -> Vec<Article> {
             SELECT * FROM articles
             WHERE title ILIKE $1
             OR description ILIKE $2
-            ORDER BY pub_date DESC NULLS LAST
+            ORDER BY time_added DESC
             LIMIT 100
         "#
     } else {
@@ -30,7 +30,7 @@ pub async fn get_like(query: &str, pool: &DbPool) -> Vec<Article> {
             SELECT * FROM articles
             WHERE title LIKE ? COLLATE NOCASE
             OR description LIKE ? COLLATE NOCASE
-            ORDER BY (pub_date IS NULL), pub_date DESC
+            ORDER BY time_added DESC
             LIMIT 100
         "#
     };
@@ -56,14 +56,14 @@ pub async fn get_by_feed(feed: &str, pool: &DbPool) -> Vec<Article> {
         r#"
            SELECT * FROM articles
            WHERE rss_source ILIKE $1
-           ORDER BY pub_date DESC NULLS LAST
+           ORDER BY time_added DESC
            LIMIT 100
            "#
     } else {
         r#"
            SELECT * FROM articles
            WHERE rss_source LIKE ? COLLATE NOCASE
-           ORDER BY (pub_date IS NULL), pub_date DESC
+           ORDER BY time_added DESC
            LIMIT 100
            "#
     };

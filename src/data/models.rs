@@ -25,6 +25,7 @@ pub struct Article {
     pub description: String,
     pub guid: Option<String>,
     // Just needed for deleting old articles
+    #[serde(rename = "timeAdded")]
     pub time_added: i64,
     #[serde(rename = "pubDateMs")]
     pub pub_date: Option<i64>,
